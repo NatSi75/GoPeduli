@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1072696479894",
+    "project_id": "gopeduli-4f028",
+    "storage_bucket": "gopeduli-4f028.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1072696479894:android:72267b742c7e256450b2b7",
+        "android_client_info": {
+          "package_name": "com.example.gopeduli"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByi5Mz2ND8UgCQY5tuRTZRtbbwJA_UvEQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
