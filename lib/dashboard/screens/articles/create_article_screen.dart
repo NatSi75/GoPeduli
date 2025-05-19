@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:gopeduli/dashboard/layouts/templates/site_layout.dart';
+import 'package:gopeduli/dashboard/screens/articles/createArticle/create_article_desktop.dart';
+import 'package:gopeduli/dashboard/screens/articles/createArticle/create_article_mobile.dart';
+import 'package:gopeduli/dashboard/screens/articles/createArticle/create_article_tablet.dart';
 
-class CreateArticleScreen extends StatefulWidget {
+class CreateArticleScreen extends StatelessWidget {
   const CreateArticleScreen({super.key});
 
   @override
-  State<CreateArticleScreen> createState() => _CreateArticleScreenState();
-}
-
-class _CreateArticleScreenState extends State<CreateArticleScreen> {
-  @override
   Widget build(BuildContext context) {
-    return Container();
+    return const GoPeduliSiteTemplate(
+        desktop: CreateArticleDesktop(),
+        tablet: CreateArticleTablet(),
+        mobile: CreateArticleMobile());
   }
 }

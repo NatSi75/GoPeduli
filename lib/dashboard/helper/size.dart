@@ -16,4 +16,6 @@ class GoPeduliSize {
 
   static const double borderRadiusLarge = 20.0;
   static const double borderRadiusSmall = 10.0;
+
+  static const double iconSmall = 16.0;
 }

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:gopeduli/dashboard/layouts/templates/site_layout.dart';
+import 'package:gopeduli/dashboard/screens/medicines/allMedicine/medicines_desktop.dart';
+import 'package:gopeduli/dashboard/screens/medicines/allMedicine/medicines_mobile.dart';
+import 'package:gopeduli/dashboard/screens/medicines/allMedicine/medicines_tablet.dart';
 
 class MedicinesScreen extends StatefulWidget {
   const MedicinesScreen({super.key});
@@ -10,6 +14,9 @@ class MedicinesScreen extends StatefulWidget {
 class _MedicinesScreenState extends State<MedicinesScreen> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return const GoPeduliSiteTemplate(
+        desktop: MedicinesDesktop(),
+        tablet: MedicinesTablet(),
+        mobile: MedicinesMobile());
   }
 }

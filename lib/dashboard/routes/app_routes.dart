@@ -9,9 +9,9 @@ import 'package:gopeduli/dashboard/screens/articles/articles_screen.dart';
 import 'package:gopeduli/dashboard/screens/articles/create_article_screen.dart';
 import 'package:gopeduli/dashboard/screens/articles/edit_article_screen.dart';
 
+import 'package:gopeduli/dashboard/screens/medicines/medicines_screen.dart';
 import 'package:gopeduli/dashboard/screens/medicines/create_medicine_screen.dart';
 import 'package:gopeduli/dashboard/screens/medicines/edit_medicine_screen.dart';
-import 'package:gopeduli/dashboard/screens/medicines/medicines_screen.dart';
 
 class GoPeduliAppRoutes {
   static final List<GetPage> pages = [

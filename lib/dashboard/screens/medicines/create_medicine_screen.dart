@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:gopeduli/dashboard/layouts/templates/site_layout.dart';
+import 'package:gopeduli/dashboard/screens/medicines/createMedicine/create_medicine_desktop.dart';
+import 'package:gopeduli/dashboard/screens/medicines/createMedicine/create_medicine_mobile.dart';
+import 'package:gopeduli/dashboard/screens/medicines/createMedicine/create_medicine_tablet.dart';
 
-class CreateMedicineScreen extends StatefulWidget {
+class CreateMedicineScreen extends StatelessWidget {
   const CreateMedicineScreen({super.key});
 
   @override
-  State<CreateMedicineScreen> createState() => _CreateMedicineScreenState();
-}
-
-class _CreateMedicineScreenState extends State<CreateMedicineScreen> {
-  @override
   Widget build(BuildContext context) {
-    return Container();
+    return const GoPeduliSiteTemplate(
+        desktop: CreateMedicineDesktop(),
+        tablet: CreateMedicineTablet(),
+        mobile: CreateMedicineMobile());
   }
 }

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:gopeduli/dashboard/helper/firebase_auth_exceptions.dart';
 import 'package:gopeduli/dashboard/routes/routes.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AuthenticationRepository extends GetxController {
   static AuthenticationRepository get instance => Get.find();
@@ -17,7 +18,9 @@ class AuthenticationRepository extends GetxController {
 
   @override
   void onReady() {
-    _auth.setPersistence(Persistence.LOCAL);
+    if (kIsWeb) {
+      _auth.setPersistence(Persistence.LOCAL);
+    }
   }
 
   // Function to determine the relevang screen and redirect accordingly

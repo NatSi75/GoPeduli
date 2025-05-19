@@ -18,10 +18,10 @@ class DesktopLayout extends StatelessWidget {
               child: Column(
                 children: [
                   //Header
-                  const GoPeduliHeader(),
+                  //const GoPeduliHeader(),
 
                   //Body
-                  body ?? const SizedBox()
+                  Expanded(child: body ?? const SizedBox())
                 ],
               ))
         ],

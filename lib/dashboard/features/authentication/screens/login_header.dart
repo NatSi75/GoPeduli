@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gopeduli/dashboard/helper/color.dart';
 import 'package:gopeduli/dashboard/helper/size.dart';
 
 class LoginHeader extends StatelessWidget {
@@ -17,9 +18,9 @@ class LoginHeader extends StatelessWidget {
             child: Text(
               'Login',
               style: TextStyle(
-                fontSize: GoPeduliSize.fontSizeTitle,
-                fontWeight: FontWeight.w500,
-              ),
+                  fontSize: GoPeduliSize.fontSizeTitle,
+                  fontWeight: FontWeight.w500,
+                  color: GoPeduliColors.white),
             ),
           ),
           SizedBox(
@@ -28,7 +29,9 @@ class LoginHeader extends StatelessWidget {
           Center(
             child: Text(
               'Silahkan login untuk melanjutkan',
-              style: TextStyle(fontSize: GoPeduliSize.fontSizeSubtitle),
+              style: TextStyle(
+                  fontSize: GoPeduliSize.fontSizeSubtitle,
+                  color: GoPeduliColors.white),
             ),
           ),
         ],

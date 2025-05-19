@@ -4,12 +4,12 @@ class GoPeduliRoutes {
   static const dashboard = '/dashboard';
 
   static const articles = '/articles';
-  static const createArticle = '/create-articles';
-  static const editArticle = '/edit-articles';
+  static const createArticle = '/create-article';
+  static const editArticle = '/edit-article';
 
   static const medicines = '/medicines';
-  static const createMedicine = '/create-medicines';
-  static const editMedicine = '/edit-medicines';
+  static const createMedicine = '/create-medicine';
+  static const editMedicine = '/edit-medicine';
 
   static List sidebarMenuItems = [
     dashboard,
