@@ -1,29 +1,37 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:gopeduli/dashboard/features/authentication/authentication_repository.dart';
+import 'package:url_strategy/url_strategy.dart';
 import 'firebase_options.dart';
-import '../widgets/navigation.dart';
+
+import 'web_app.dart';
+import 'mobile_app.dart';
 
 Future<void> main() async {
+  // Ensure that plugin services are initialized before using any plugins
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize GetX Local Storage
+  await GetStorage.init();
+
+  // Initialize Firebase & Authentication Repository
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const MyApp());
-}
+  ).then((value) => Get.put(AuthenticationRepository()));
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  // Remove # sign from url
+  setPathUrlStrategy();
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'GoPeduli',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const Navigation(),
-    );
+  if (kIsWeb) {
+    runApp(const WebApp());
+  } else if (Platform.isAndroid && Platform.isIOS) {
+    runApp(const MobileApp());
+  } else {
+    runApp(const MobileApp());
   }
 }
