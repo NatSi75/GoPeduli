@@ -1,16 +1,12 @@
-import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 import 'package:gopeduli/dashboard/repository/medicine_model.dart';
-import 'package:image_picker/image_picker.dart';
 
 class MedicineRepository extends GetxController {
   static MedicineRepository get instance => Get.find();
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Get all articles from the 'medicines' collection
+  // Get all medicine from the 'medicines' collection
   Future<List<MedicineModel>> getAllMedicines() async {
     try {
       final snapshot = await _db.collection("medicines").get();
@@ -24,8 +20,8 @@ class MedicineRepository extends GetxController {
     }
   }
 
-  // Creaete a new article document in the 'medicines' collection
-  Future<String> createArticle(MedicineModel medicine) async {
+  // Creaete a new medicine document in the 'medicines' collection
+  Future<String> createMedicine(MedicineModel medicine) async {
     try {
       final result = await _db.collection("medicines").add(medicine.toJson());
       return result.id;
@@ -36,32 +32,28 @@ class MedicineRepository extends GetxController {
     }
   }
 
-  Future<String> uploadImageFile(String path, XFile image) async {
+  // Delete an existing medicine document from the 'articles' collection
+  Future<void> deleteMedicine(String medicineId) async {
     try {
-      final ref = FirebaseStorage.instance.ref().child('path/to/image');
-      final UploadTask uploadTask = ref.putData(await image.readAsBytes());
-      await uploadTask.whenComplete(() => print('File uploaded'));
-      final url = await ref.getDownloadURL();
-      return url;
+      await _db.collection('medicines').doc(medicineId).delete();
     } on FirebaseException catch (e) {
-      throw FirebaseException(code: e.code, plugin: 'firebase_storage');
+      throw e.message!;
     } catch (e) {
-      throw Exception('something');
+      throw 'Something Went Wrong! Please try again.';
     }
   }
 
-  /// Upload raw Uint8List for web
-  Future<String> uploadImageBytes(String path, Uint8List data) async {
+  // Update Medicine
+  Future<void> updateMedicine(MedicineModel medicine) async {
     try {
-      final ref = FirebaseStorage.instance
-          .ref(path)
-          .child('${DateTime.now().millisecondsSinceEpoch}.png');
-      await ref.putData(data);
-      return await ref.getDownloadURL();
+      await _db
+          .collection('medicines')
+          .doc(medicine.id)
+          .update(medicine.toJson());
     } on FirebaseException catch (e) {
-      throw FirebaseException(code: e.code, plugin: 'firebase_storage');
+      throw e.message!;
     } catch (e) {
-      throw Exception('Upload failed.');
+      throw 'Something Went Wrong! Please try again.';
     }
   }
 }

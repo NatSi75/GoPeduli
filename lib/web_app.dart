@@ -11,7 +11,7 @@ class WebApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Dashboard',
+      title: 'Admin Panel GoPeduli',
       theme: ThemeData(fontFamily: 'Poppins'),
       getPages: GoPeduliAppRoutes.pages,
       initialBinding: GeneralBindings(),

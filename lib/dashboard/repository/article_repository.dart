@@ -1,11 +1,6 @@
-import 'dart:io' as io;
-import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 import 'package:gopeduli/dashboard/repository/article_model.dart';
-import 'package:image_picker/image_picker.dart';
 
 class ArticleRepository extends GetxController {
   static ArticleRepository get instance => Get.find();
@@ -25,7 +20,7 @@ class ArticleRepository extends GetxController {
     }
   }
 
-  // Creaete a new article document in the 'Articles' collection
+  // Create a new article document in the 'Articles' collection
   Future<String> createArticle(ArticleModel article) async {
     try {
       final result = await _db.collection("articles").add(article.toJson());
@@ -37,32 +32,25 @@ class ArticleRepository extends GetxController {
     }
   }
 
-  Future<String> uploadImageFile(String path, XFile image) async {
+  // Delete an existing article document from the 'articles' collection
+  Future<void> deleteArticle(String articleId) async {
     try {
-      final ref = FirebaseStorage.instance.ref().child('path/to/image');
-      final UploadTask uploadTask = ref.putData(await image.readAsBytes());
-      await uploadTask.whenComplete(() => print('File uploaded'));
-      final url = await ref.getDownloadURL();
-      return url;
+      await _db.collection('articles').doc(articleId).delete();
     } on FirebaseException catch (e) {
-      throw FirebaseException(code: e.code, plugin: 'firebase_storage');
+      throw e.message!;
     } catch (e) {
-      throw Exception('something');
+      throw 'Something Went Wrong! Please try again.';
     }
   }
 
-  /// Upload raw Uint8List for web
-  Future<String> uploadImageBytes(String path, Uint8List data) async {
+  // Update Article
+  Future<void> updateArticle(ArticleModel article) async {
     try {
-      final ref = FirebaseStorage.instance
-          .ref(path)
-          .child('${DateTime.now().millisecondsSinceEpoch}.png');
-      await ref.putData(data);
-      return await ref.getDownloadURL();
+      await _db.collection('articles').doc(article.id).update(article.toJson());
     } on FirebaseException catch (e) {
-      throw FirebaseException(code: e.code, plugin: 'firebase_storage');
+      throw e.message!;
     } catch (e) {
-      throw Exception('Upload failed.');
+      throw 'Something Went Wrong! Please try again.';
     }
   }
 }
