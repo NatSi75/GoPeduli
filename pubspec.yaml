@@ -102,10 +102,5 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
   assets:
-    - assets/images/paracetamol1.png
-    - assets/images/ibuprofen.png
-    - assets/images/panadol1.png
-    - assets/images/sanmol.png
-    - assets/images/panadol2.png
-    - assets/images/logo.png
-    - assets/images/image_login.png
+    - assets/images/
+
