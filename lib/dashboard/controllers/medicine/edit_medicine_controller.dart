@@ -6,8 +6,8 @@ import 'package:gopeduli/dashboard/repository/medicine_model.dart';
 import 'package:gopeduli/dashboard/repository/medicine_repository.dart';
 import 'package:gopeduli/dashboard/routes/routes.dart';
 
-class CreateMedicineController extends GetxController {
-  static CreateMedicineController get instance => Get.find();
+class EditMedicineController extends GetxController {
+  static EditMedicineController get instance => Get.find();
 
   final nameProduct = TextEditingController();
   final nameMedicine = TextEditingController();
@@ -16,6 +16,16 @@ class CreateMedicineController extends GetxController {
   final price = TextEditingController();
   final stock = TextEditingController();
   final formKey = GlobalKey<FormState>();
+
+  // Init Data
+  void init(MedicineModel medicine) {
+    nameProduct.text = medicine.nameProduct;
+    nameMedicine.text = medicine.nameMedicine;
+    category.text = medicine.category;
+    classMedicine.text = medicine.classMedicine;
+    price.text = medicine.price;
+    stock.text = medicine.stock;
+  }
 
   void resetFields() {
     nameProduct.clear();
@@ -26,35 +36,36 @@ class CreateMedicineController extends GetxController {
     stock.clear();
   }
 
-  Future<void> createMedicine() async {
+  // Edit Medicine
+  Future<void> editMedicine(MedicineModel medicine) async {
     try {
       if (!formKey.currentState!.validate()) {
         return;
       }
 
-      final newMedicine = MedicineModel(
-          id: '',
-          nameProduct: nameProduct.text.trim(),
-          nameMedicine: nameMedicine.text.trim(),
-          category: category.text.trim(),
-          classMedicine: classMedicine.text.trim(),
-          price: price.text.trim(),
-          stock: stock.text.trim(),
-          createdAt: DateTime.now());
+      //Map Data
+      medicine.nameProduct = nameProduct.text.trim();
+      medicine.nameMedicine = nameMedicine.text.trim();
+      medicine.category = category.text.trim();
+      medicine.classMedicine = classMedicine.text.trim();
+      medicine.price = price.text.trim();
+      medicine.stock = stock.text.trim();
+      medicine.createdAt = DateTime.now();
 
-      newMedicine.id =
-          await MedicineRepository.instance.createMedicine(newMedicine);
+      // Call Repository
+      await MedicineRepository.instance.updateMedicine(medicine);
 
-      MedicineController.instance.addMedicineFromLists(newMedicine);
+      // Update All Data List
+      MedicineController.instance.updateMedicineFromLists(medicine);
 
       //Reset Form
       resetFields();
 
       GoPeduliLoaders.successSnackBar(
-          title: 'Congratulations', message: 'New Medicine has been added.');
+          title: 'Congratulations', message: 'Medicine has been edited.');
+
       Future.delayed(const Duration(milliseconds: 2000), () {
-        Get.offNamed(
-            GoPeduliRoutes.medicines); // Ganti '/article' sesuai route kamu
+        Get.offNamed(GoPeduliRoutes.medicines);
       });
     } catch (e) {
       GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
