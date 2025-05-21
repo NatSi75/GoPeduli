@@ -6,8 +6,8 @@ import 'package:gopeduli/dashboard/repository/article_model.dart';
 import 'package:gopeduli/dashboard/repository/article_repository.dart';
 import 'package:gopeduli/dashboard/routes/routes.dart';
 
-class CreateArticleController extends GetxController {
-  static CreateArticleController get instance => Get.find();
+class EditArticleController extends GetxController {
+  static EditArticleController get instance => Get.find();
 
   RxString imageURL = ''.obs;
   final title = TextEditingController();
@@ -15,6 +15,14 @@ class CreateArticleController extends GetxController {
   final author = TextEditingController();
   final verifiedBy = TextEditingController();
   final formKey = GlobalKey<FormState>();
+
+  // Init Data
+  void init(ArticleModel article) {
+    title.text = article.title;
+    body.text = article.body;
+    author.text = article.author;
+    verifiedBy.text = article.verifiedBy;
+  }
 
   void resetFields() {
     title.clear();
@@ -24,35 +32,34 @@ class CreateArticleController extends GetxController {
     imageURL.value = '';
   }
 
-  Future<void> createArticle() async {
+  // Edit Article
+  Future<void> editArticle(ArticleModel article) async {
     try {
       if (!formKey.currentState!.validate()) {
         return;
       }
 
-      final newArticle = ArticleModel(
-          id: '',
-          image: imageURL.value,
-          title: title.text.trim(),
-          body: body.text.trim(),
-          author: author.text.trim(),
-          verifiedBy: verifiedBy.text.trim(),
-          createdAt: DateTime.now());
+      //Map Data
+      article.title = title.text.trim();
+      article.body = body.text.trim();
+      article.author = author.text.trim();
+      article.verifiedBy = verifiedBy.text.trim();
+      article.createdAt = DateTime.now();
 
-      newArticle.id =
-          await ArticleRepository.instance.createArticle(newArticle);
+      // Call Repository
+      await ArticleRepository.instance.updateArticle(article);
 
-      ArticleController.instance.addArticleFromLists(newArticle);
+      // Update All Data List
+      ArticleController.instance.updateArticleFromLists(article);
 
       //Reset Form
       resetFields();
 
       GoPeduliLoaders.successSnackBar(
-          title: 'Congratulations', message: 'New Article has been added.');
+          title: 'Congratulations', message: 'Article has been edited.');
 
       Future.delayed(const Duration(milliseconds: 2000), () {
-        Get.offNamed(
-            GoPeduliRoutes.articles); // Ganti '/article' sesuai route kamu
+        Get.offNamed(GoPeduliRoutes.articles);
       });
     } catch (e) {
       GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());

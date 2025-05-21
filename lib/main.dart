@@ -16,18 +16,17 @@ Future<void> main() async {
   // Ensure that plugin services are initialized before using any plugins
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize GetX Local Storage
-  await GetStorage.init();
-
-  // Initialize Firebase & Authentication Repository
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  ).then((value) => Get.put(AuthenticationRepository()));
-
-  // Remove # sign from url
-  setPathUrlStrategy();
-
   if (kIsWeb) {
+    // Initialize GetX Local Storage
+    await GetStorage.init();
+
+    // Initialize Firebase & Authentication Repository
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).then((value) => Get.put(AuthenticationRepository()));
+
+    // Remove # sign from url
+    setPathUrlStrategy();
     runApp(const WebApp());
   } else if (Platform.isAndroid && Platform.isIOS) {
     runApp(const MobileApp());

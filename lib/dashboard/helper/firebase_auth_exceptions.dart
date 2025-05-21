@@ -16,7 +16,7 @@ class GoPeduliAuthException implements Exception {
       case 'user-not-found':
         return 'Invalid login details. User not found.';
       case 'wrong-password':
-        return 'Incorrect password. Please check yout password and try again.';
+        return 'Incorrect password. Please check you password and try again.';
       case 'invalid-verification-code':
         return 'Invalid verification code. Please enter a valid code.';
       default:
