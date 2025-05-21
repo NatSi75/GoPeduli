@@ -108,7 +108,7 @@ class ArticlesDesktop extends StatelessWidget {
                         child: Theme(
                           //Use to set the Backend color
                           data: Theme.of(context).copyWith(
-                              cardTheme: const CardTheme(
+                              cardTheme: const CardThemeData(
                                   color: GoPeduliColors.white, elevation: 0)),
                           child: PaginatedDataTable2(
                             isVerticalScrollBarVisible: true,
