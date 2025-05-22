@@ -1,3 +1,5 @@
+import 'product_model.dart';
+
 class CartItem {
   final String id;
   final String name;
@@ -5,6 +7,7 @@ class CartItem {
   final double price;
   int quantity;
   bool isSelected;
+  final ProductModel product;
 
   CartItem({
     required this.id,
@@ -13,6 +16,7 @@ class CartItem {
     required this.price,
     this.quantity = 1,
     this.isSelected = false,
+    required this.product, // harus ditambahkan ini supaya product bisa diassign
   });
 
   @override
