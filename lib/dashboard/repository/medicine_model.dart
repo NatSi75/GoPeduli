@@ -37,7 +37,6 @@ class MedicineModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'Id': id,
       'NameProduct': nameProduct,
       'NameMedicine': nameMedicine,
       'Category': category,
@@ -55,22 +54,16 @@ class MedicineModel {
       final data = document.data()!;
       return MedicineModel(
         id: document.id,
-        nameProduct:
-            data.containsKey('NameProduct') ? data['NameProduct'] ?? '' : '',
-        nameMedicine:
-            data.containsKey('NameMedicine') ? data['NameMedicine'] ?? '' : '',
-        category: data.containsKey('Category') ? data['Category'] ?? '' : '',
-        classMedicine: data.containsKey('ClassMedicine')
-            ? data['ClassMedicine'] ?? ''
-            : '',
-        price: data.containsKey('Price') ? data['Price'] ?? '' : '',
-        stock: data.containsKey('Stock') ? data['Stock'] ?? '' : '',
-        createdAt: data.containsKey('CreatedAt')
-            ? (data['CreatedAt']?.toDate() ?? DateTime.now())
-            : DateTime.now(),
-        updatedAt: data.containsKey('UpdatedAt')
-            ? (data['UpdatedAt']?.toDate() ?? DateTime.now())
-            : DateTime.now(),
+        nameProduct: data['NameProduct'] ?? '',
+        nameMedicine: data['NameMedicine'] ?? '',
+        category: data['Category'] ?? '',
+        classMedicine: data['ClassMedicine'] ?? '',
+        price: data['Price'] ?? '',
+        stock: data['Stock'] ?? '',
+        createdAt:
+            data.containsKey('CreatedAt') ? data['CreatedAt']?.toDate() : null,
+        updatedAt:
+            data.containsKey('UpdatedAt') ? data['UpdatedAt']?.toDate() : null,
       );
     } else {
       return empty();

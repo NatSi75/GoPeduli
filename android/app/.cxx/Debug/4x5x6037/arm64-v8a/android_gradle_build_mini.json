@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "C:\\FlutterSDK\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\Melvy\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\Melvy\\Desktop\\SoftDev_GoPeduli\\GoPeduli\\android\\app\\.cxx\\Debug\\4x5x6037\\arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\Melvy\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\Melvy\\Desktop\\SoftDev_GoPeduli\\GoPeduli\\android\\app\\.cxx\\Debug\\4x5x6037\\arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

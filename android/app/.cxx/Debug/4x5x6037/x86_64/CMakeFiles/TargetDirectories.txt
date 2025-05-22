@@ -1,0 +1,2 @@
+C:/Users/Melvy/Desktop/SoftDev_GoPeduli/GoPeduli/android/app/.cxx/Debug/4x5x6037/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/Melvy/Desktop/SoftDev_GoPeduli/GoPeduli/android/app/.cxx/Debug/4x5x6037/x86_64/CMakeFiles/rebuild_cache.dir

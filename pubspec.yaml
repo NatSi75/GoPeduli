@@ -50,6 +50,7 @@ dependencies:
   universal_html: ^2.2.4
   qr_flutter: ^4.0.0
   uuid: ^4.0.0
+  google_fonts: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -98,12 +99,10 @@ flutter:
         - asset: fonts/poppins.medium.ttf
         - asset: fonts/poppins.semiBold.ttf
         - asset: fonts/poppins.bold.ttf
+          weight: 700
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
   assets:
-    - assets/images/paracetamol1.png
-    - assets/images/ibuprofen.png
-    - assets/images/panadol1.png
-    - assets/images/sanmol.png
-    - assets/images/panadol2.png
+    - assets/images/
+

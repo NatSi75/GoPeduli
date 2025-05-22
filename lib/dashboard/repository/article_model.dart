@@ -17,19 +17,18 @@ class ArticleModel {
     required this.title,
     required this.body,
     required this.author,
-    this.verifiedBy = '',
+    required this.verifiedBy,
     this.createdAt,
     this.updatedAt,
   });
 
-  static ArticleModel empty() =>
-      ArticleModel(id: '', image: '', title: '', body: '', author: '');
+  static ArticleModel empty() => ArticleModel(
+      id: '', image: '', title: '', body: '', author: '', verifiedBy: '');
   String get formattedDate => GoPeduliFormatter.formatDate(createdAt);
   String get formattedUpdateAtDate => GoPeduliFormatter.formatDate(updatedAt);
 
   Map<String, dynamic> toJson() {
     return {
-      'Id': id,
       'Image': image,
       'Title': title,
       'Body': body,
@@ -46,18 +45,15 @@ class ArticleModel {
       final data = document.data()!;
       return ArticleModel(
         id: document.id,
-        image: data.containsKey('Image') ? data['Image'] ?? '' : '',
-        title: data.containsKey('Title') ? data['Title'] ?? '' : '',
-        body: data.containsKey('Body') ? data['Body'] ?? '' : '',
-        author: data.containsKey('Author') ? data['Author'] ?? '' : '',
-        verifiedBy:
-            data.containsKey('VerfiedBy') ? data['VerfiedBy'] ?? '' : '',
-        createdAt: data.containsKey('CreatedAt')
-            ? (data['CreatedAt']?.toDate() ?? DateTime.now())
-            : DateTime.now(),
-        updatedAt: data.containsKey('UpdatedAt')
-            ? (data['UpdatedAt']?.toDate() ?? DateTime.now())
-            : DateTime.now(),
+        image: data['Image'] ?? '',
+        title: data['Title'] ?? '',
+        body: data['Body'] ?? '',
+        author: data['Author'] ?? '',
+        verifiedBy: data['VerifiedBy'] ?? '',
+        createdAt:
+            data.containsKey('CreatedAt') ? data['CreatedAt']?.toDate() : null,
+        updatedAt:
+            data.containsKey('UpdatedAt') ? data['UpdatedAt']?.toDate() : null,
       );
     } else {
       return empty();

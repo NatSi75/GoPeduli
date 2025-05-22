@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:get/get.dart';
+import 'package:gopeduli/dashboard/controllers/article/article_controller.dart';
 import 'package:gopeduli/dashboard/features/popup/loaders.dart';
 import 'package:gopeduli/dashboard/repository/article_model.dart';
 import 'package:gopeduli/dashboard/repository/article_repository.dart';
+import 'package:gopeduli/dashboard/routes/routes.dart';
 
 class CreateArticleController extends GetxController {
   static CreateArticleController get instance => Get.find();
@@ -40,8 +41,19 @@ class CreateArticleController extends GetxController {
 
       newArticle.id =
           await ArticleRepository.instance.createArticle(newArticle);
+
+      ArticleController.instance.addArticleFromLists(newArticle);
+
+      //Reset Form
+      resetFields();
+
       GoPeduliLoaders.successSnackBar(
           title: 'Congratulations', message: 'New Article has been added.');
+
+      Future.delayed(const Duration(milliseconds: 2000), () {
+        Get.offNamed(
+            GoPeduliRoutes.articles); // Ganti '/article' sesuai route kamu
+      });
     } catch (e) {
       GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
     }

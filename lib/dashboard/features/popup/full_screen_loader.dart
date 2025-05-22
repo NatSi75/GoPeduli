@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GoPeduliFullScreenLoader {
-  static void openLoadingDialog(String Text, String animation) {
+  static void openLoadingDialog(String text, String animation) {
     showDialog(
         context: Get.overlayContext!,
         barrierDismissible: false,
