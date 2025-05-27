@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:gopeduli/dashboard/controllers/article/article_controller.dart';
@@ -5,6 +6,11 @@ import 'package:gopeduli/dashboard/features/popup/loaders.dart';
 import 'package:gopeduli/dashboard/repository/article_model.dart';
 import 'package:gopeduli/dashboard/repository/article_repository.dart';
 import 'package:gopeduli/dashboard/routes/routes.dart';
+import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
+
+final imageDataNotifier = ValueNotifier<Uint8List?>(null);
+final imageUrlNotifier = ValueNotifier<String?>(null);
 
 class CreateArticleController extends GetxController {
   static CreateArticleController get instance => Get.find();
@@ -22,11 +28,48 @@ class CreateArticleController extends GetxController {
     author.clear();
     verifiedBy.clear();
     imageURL.value = '';
+    imageDataNotifier.value = null;
+  }
+
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      final Uint8List data = await image.readAsBytes();
+
+      imageDataNotifier.value = data;
+
+      GoPeduliLoaders.successSnackBar(
+          title: 'Congratulations', message: 'Image has been selected.');
+    }
   }
 
   Future<void> createArticle() async {
     try {
       if (!formKey.currentState!.validate()) {
+        return;
+      }
+
+      if (imageDataNotifier.value != null) {
+        final data = imageDataNotifier.value!;
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('articles/${title.text.trim()}_article_image.jpg');
+
+        try {
+          final task = await ref.putData(data);
+          final url = await task.ref.getDownloadURL();
+          imageURL.value = url;
+        } catch (e) {
+          GoPeduliLoaders.errorSnackBar(
+              title: 'Oh Snap', message: e.toString());
+        }
+      } else {
+        GoPeduliLoaders.errorSnackBar(
+          title: 'Oh Snap',
+          message: 'Image is required.',
+        );
         return;
       }
 

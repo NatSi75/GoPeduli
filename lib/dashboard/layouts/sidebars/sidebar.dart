@@ -28,9 +28,10 @@ class GoPeduliSidebar extends StatelessWidget {
                 padding: EdgeInsets.symmetric(
                     vertical: GoPeduliSize.paddingHeightSmall),
                 child: CircleAvatar(
+                  backgroundColor: GoPeduliColors.white,
                   radius: 50,
-                  backgroundImage: NetworkImage(
-                      'https://example.com/profile.jpg'), // Replace with your image URL
+                  backgroundImage: AssetImage(
+                      'assets/images/logo.png'), // Replace with your image URL
                 ),
               ),
               Padding(

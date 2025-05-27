@@ -33,7 +33,7 @@ class GoPeduliPaginatedTableArticle extends StatelessWidget {
               minWidth: 786,
               dividerThickness: 0.5,
               horizontalMargin: 12,
-              dataRowHeight: 56,
+              dataRowHeight: 80,
               rowsPerPage: defaultRowsPerPage,
               headingTextStyle: Theme.of(context).textTheme.titleMedium,
               headingRowColor: WidgetStateProperty.resolveWith(
@@ -82,6 +82,11 @@ class GoPeduliPaginatedTableArticle extends StatelessWidget {
                   onSort: (columnIndex, ascending) =>
                       controller.sortByTitle(columnIndex, ascending),
                 ),
+                const DataColumn2(
+                    label: Text(
+                  'Image',
+                  style: TextStyle(color: GoPeduliColors.white),
+                )),
                 const DataColumn2(
                     label: Text('Body',
                         style: TextStyle(color: GoPeduliColors.white))),

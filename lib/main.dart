@@ -16,6 +16,10 @@ Future<void> main() async {
   // Ensure that plugin services are initialized before using any plugins
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   if (kIsWeb) {
     // Initialize GetX Local Storage
     await GetStorage.init();

@@ -1,0 +1,2 @@
+C:/Users/Natanael Sion/Downloads/SoftDev 2/GoPeduli/android/app/.cxx/Debug/4f703b72/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/Natanael Sion/Downloads/SoftDev 2/GoPeduli/android/app/.cxx/Debug/4f703b72/x86_64/CMakeFiles/rebuild_cache.dir
