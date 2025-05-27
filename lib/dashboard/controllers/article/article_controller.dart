@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
@@ -140,6 +141,8 @@ class ArticleController extends GetxController {
 
       // Delete Firestore Data
       await articleRepository.deleteArticle(article.id);
+      final ref = FirebaseStorage.instance.refFromURL(article.image);
+      await ref.delete();
 
       GoPeduliLoaders.successSnackBar(
           title: 'Article Deleted', message: 'Article has been deleted.');
@@ -190,6 +193,9 @@ class MyDataArticle extends DataTableSource {
         cells: [
           DataCell(
             Text(article.title),
+          ),
+          DataCell(
+            Image.network(article.image, width: 200, height: 200),
           ),
           DataCell(Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),

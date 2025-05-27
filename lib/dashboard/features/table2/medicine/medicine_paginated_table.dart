@@ -33,7 +33,7 @@ class GoPeduliPaginatedTableMedicine extends StatelessWidget {
               minWidth: 786,
               dividerThickness: 0.5,
               horizontalMargin: 12,
-              dataRowHeight: 56,
+              dataRowHeight: 80,
               rowsPerPage: defaultRowsPerPage,
               headingTextStyle: Theme.of(context).textTheme.titleMedium,
               headingRowColor: WidgetStateProperty.resolveWith(
@@ -74,11 +74,18 @@ class GoPeduliPaginatedTableMedicine extends StatelessWidget {
                 }
               },
               columns: [
+                const DataColumn2(
+                  label: Text('Image',
+                      style: TextStyle(color: GoPeduliColors.white)),
+                ),
                 DataColumn2(
                     label: const Text('Name Product',
                         style: TextStyle(color: GoPeduliColors.white)),
                     onSort: (columnIndex, ascending) =>
                         controller.sortByNameProduct(columnIndex, ascending)),
+                const DataColumn2(
+                    label: Text('Description',
+                        style: TextStyle(color: GoPeduliColors.white))),
                 DataColumn2(
                     label: const Text('Name Medicine',
                         style: TextStyle(color: GoPeduliColors.white)),

@@ -3,7 +3,9 @@ import 'package:gopeduli/dashboard/helper/formatter.dart';
 
 class MedicineModel {
   String id;
+  String image;
   String nameProduct;
+  String description;
   String nameMedicine;
   String category;
   String classMedicine;
@@ -14,7 +16,9 @@ class MedicineModel {
 
   MedicineModel({
     required this.id,
+    required this.image,
     required this.nameProduct,
+    required this.description,
     required this.nameMedicine,
     required this.category,
     required this.classMedicine,
@@ -26,7 +30,9 @@ class MedicineModel {
 
   static MedicineModel empty() => MedicineModel(
       id: '',
+      image: '',
       nameProduct: '',
+      description: '',
       nameMedicine: '',
       category: '',
       classMedicine: '',
@@ -37,7 +43,9 @@ class MedicineModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'Image': image,
       'NameProduct': nameProduct,
+      'Description': description,
       'NameMedicine': nameMedicine,
       'Category': category,
       'ClassMedicine': classMedicine,
@@ -54,7 +62,9 @@ class MedicineModel {
       final data = document.data()!;
       return MedicineModel(
         id: document.id,
+        image: data['Image'] ?? '',
         nameProduct: data['NameProduct'] ?? '',
+        description: data['Description'] ?? '',
         nameMedicine: data['NameMedicine'] ?? '',
         category: data['Category'] ?? '',
         classMedicine: data['ClassMedicine'] ?? '',

@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
@@ -182,6 +183,8 @@ class MedicineController extends GetxController {
 
       // Delete Firestore Data
       await medicineRepository.deleteMedicine(medicine.id);
+      final ref = FirebaseStorage.instance.refFromURL(medicine.image);
+      await ref.delete();
 
       GoPeduliLoaders.successSnackBar(
           title: 'Medicine Deleted', message: 'Medicine has been deleted.');
@@ -235,8 +238,15 @@ class MyDataMedicine extends DataTableSource {
             },
         cells: [
           DataCell(
+            Image.network(medicine.image, width: 200, height: 200),
+          ),
+          DataCell(
             Text(medicine.nameProduct),
           ),
+          DataCell(Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(medicine.description),
+          )),
           DataCell(
             Text(medicine.nameMedicine),
           ),

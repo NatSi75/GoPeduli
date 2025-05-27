@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:gopeduli/dashboard/controllers/medicine/medicine_controller.dart';
@@ -5,11 +6,19 @@ import 'package:gopeduli/dashboard/features/popup/loaders.dart';
 import 'package:gopeduli/dashboard/repository/medicine_model.dart';
 import 'package:gopeduli/dashboard/repository/medicine_repository.dart';
 import 'package:gopeduli/dashboard/routes/routes.dart';
+import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
+
+final imageDataNotifier = ValueNotifier<Uint8List?>(null);
+final imageUrlNotifier = ValueNotifier<String?>(null);
 
 class EditMedicineController extends GetxController {
   static EditMedicineController get instance => Get.find();
 
+  RxString imageURL = ''.obs;
+  String previousImageUrl = '';
   final nameProduct = TextEditingController();
+  final description = TextEditingController();
   final nameMedicine = TextEditingController();
   final category = TextEditingController();
   final classMedicine = TextEditingController();
@@ -20,20 +29,41 @@ class EditMedicineController extends GetxController {
   // Init Data
   void init(MedicineModel medicine) {
     nameProduct.text = medicine.nameProduct;
+    description.text = medicine.description;
     nameMedicine.text = medicine.nameMedicine;
     category.text = medicine.category;
     classMedicine.text = medicine.classMedicine;
     price.text = medicine.price;
     stock.text = medicine.stock;
+    imageURL.value = medicine.image;
+    previousImageUrl = medicine.image;
   }
 
   void resetFields() {
     nameProduct.clear();
+    description.clear();
     nameMedicine.clear();
     category.clear();
     classMedicine.clear();
     price.clear();
     stock.clear();
+    imageURL.value = '';
+    previousImageUrl = '';
+    imageDataNotifier.value = null;
+  }
+
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      final Uint8List data = await image.readAsBytes();
+
+      imageDataNotifier.value = data;
+
+      GoPeduliLoaders.successSnackBar(
+          title: 'Congratulations', message: 'Image has been selected.');
+    }
   }
 
   // Edit Medicine
@@ -43,8 +73,32 @@ class EditMedicineController extends GetxController {
         return;
       }
 
+      if (imageDataNotifier.value != null) {
+        final data = imageDataNotifier.value!;
+        final fileName =
+            'medicines/${nameProduct.text.trim()}_edited_image.jpg';
+        final ref = FirebaseStorage.instance.ref().child(fileName);
+
+        if (previousImageUrl.isNotEmpty) {
+          try {
+            final oldRef =
+                FirebaseStorage.instance.refFromURL(previousImageUrl);
+            await oldRef.delete();
+          } catch (e) {
+            GoPeduliLoaders.errorSnackBar(
+                title: 'Oh Snap', message: e.toString());
+          }
+        }
+
+        final task = await ref.putData(data);
+        final downloadUrl = await task.ref.getDownloadURL();
+        imageURL.value = downloadUrl;
+      }
+
       //Map Data
+      medicine.image = imageURL.value;
       medicine.nameProduct = nameProduct.text.trim();
+      medicine.description = description.text.trim();
       medicine.nameMedicine = nameMedicine.text.trim();
       medicine.category = category.text.trim();
       medicine.classMedicine = classMedicine.text.trim();

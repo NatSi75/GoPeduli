@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gopeduli/dashboard/controllers/article/create_article_controller.dart';
@@ -124,6 +126,37 @@ class CreateArticleFrom extends StatelessWidget {
                 ),
                 labelStyle: TextStyle(
                     color: Colors.black, fontSize: GoPeduliSize.fontSizeBody),
+              ),
+            ),
+            const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+            Center(
+              child: ValueListenableBuilder<Uint8List?>(
+                valueListenable: imageDataNotifier,
+                builder: (context, imageData, child) {
+                  if (imageData == null) {
+                    return const Text('No Image Yet',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: GoPeduliSize.fontSizeBody));
+                  }
+                  return Image.memory(imageData,
+                      height: 200, fit: BoxFit.cover);
+                },
+              ),
+            ),
+            const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+            Center(
+              child: ElevatedButton(
+                onPressed: controller.pickImage,
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: GoPeduliColors.primary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            GoPeduliSize.borderRadiusSmall))),
+                child: const Text('Select Image',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: GoPeduliSize.fontSizeBody)),
               ),
             ),
             const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
