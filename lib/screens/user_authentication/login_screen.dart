@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gopeduli/screens/user_authentication/register_screen.dart';
+import 'package:gopeduli/screens/user_authentication/forgot_password_screen.dart';
 import 'package:gopeduli/widgets/navigation.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -143,12 +144,18 @@ Future<void> _login() async {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    "Forgot Password?",
-                    style: TextStyle(color: Colors.teal),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
+                      );
+                    },
+                    child: const Text(
+                      "Forgot Password?",
+                      style: TextStyle(color: Colors.teal),
+                    ),
                   ),
-                ),
+
               ),
               const SizedBox(height: 8),
 
