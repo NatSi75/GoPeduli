@@ -5,7 +5,7 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import '../screens/home_screen.dart';
 import '../screens/shop_screen.dart';
-import '../screens/chat_screen.dart';
+import '../screens/message_list_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/profile_screen.dart';
 
@@ -22,7 +22,7 @@ class _NavigationState extends State<Navigation> {
   final screen = [
     const HomeScreen(),
     const ShopScreen(),
-    const ChatScreen(),
+    const MessageListScreen(),
     const HistoryScreen(),
     const ProfileScreen(),
   ];
