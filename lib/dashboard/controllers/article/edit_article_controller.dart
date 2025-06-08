@@ -5,6 +5,7 @@ import 'package:gopeduli/dashboard/controllers/article/article_controller.dart';
 import 'package:gopeduli/dashboard/features/popup/loaders.dart';
 import 'package:gopeduli/dashboard/repository/article_model.dart';
 import 'package:gopeduli/dashboard/repository/article_repository.dart';
+import 'package:gopeduli/dashboard/repository/author_model.dart';
 import 'package:gopeduli/dashboard/routes/routes.dart';
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
@@ -15,19 +16,35 @@ final imageUrlNotifier = ValueNotifier<String?>(null);
 class EditArticleController extends GetxController {
   static EditArticleController get instance => Get.find();
 
+  List<AuthorModel> authors = <AuthorModel>[].obs;
   RxString imageURL = ''.obs;
   String previousImageUrl = '';
   final title = TextEditingController();
   final body = TextEditingController();
-  final author = TextEditingController();
+  RxnString author = RxnString();
   final verifiedBy = TextEditingController();
   final formKey = GlobalKey<FormState>();
+
+  @override
+  void onInit() {
+    fetchAuthors();
+    super.onInit();
+  }
+
+  void fetchAuthors() async {
+    try {
+      final result = await ArticleRepository.instance.getAllAuthors();
+      authors.assignAll(result);
+    } catch (e) {
+      GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
+    }
+  }
 
   // Init Data
   void init(ArticleModel article) {
     title.text = article.title;
     body.text = article.body;
-    author.text = article.author;
+    author.value = article.author;
     verifiedBy.text = article.verifiedBy;
     imageURL.value = article.image;
     previousImageUrl = article.image;
@@ -36,7 +53,7 @@ class EditArticleController extends GetxController {
   void resetFields() {
     title.clear();
     body.clear();
-    author.clear();
+    author.value = null;
     verifiedBy.clear();
     imageURL.value = '';
     previousImageUrl = '';
@@ -88,7 +105,7 @@ class EditArticleController extends GetxController {
       //Map Data
       article.title = title.text.trim();
       article.body = body.text.trim();
-      article.author = author.text.trim();
+      article.author = author.value ?? '';
       article.verifiedBy = verifiedBy.text.trim();
       article.image = imageURL.value;
       article.createdAt = DateTime.now();

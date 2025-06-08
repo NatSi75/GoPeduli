@@ -26,32 +26,6 @@ class GoPeduliHeader extends StatelessWidget implements PreferredSizeWidget {
                 onPressed: () => scaffoldKey?.currentState?.openDrawer(),
               )
             : null,
-        title: GoPeduliDeviceUtility.isDesktopScreen(context)
-            ? SizedBox(
-                width: 400,
-                child: TextFormField(
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
-                    hintText: 'Search...',
-                  ),
-                ),
-              )
-            : null,
-        actions: [
-          if (!GoPeduliDeviceUtility.isDesktopScreen(context))
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                // Handle notifications
-              },
-            ),
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              // Handle notifications
-            },
-          ),
-        ],
       ),
     );
   }

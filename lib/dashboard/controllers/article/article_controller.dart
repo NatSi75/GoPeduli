@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:gopeduli/dashboard/features/popup/loaders.dart';
+import 'package:gopeduli/dashboard/helper/color.dart';
 import 'package:gopeduli/dashboard/helper/size.dart';
 import 'package:gopeduli/dashboard/repository/article_model.dart';
 import 'package:gopeduli/dashboard/repository/article_repository.dart';
@@ -108,30 +109,37 @@ class ArticleController extends GetxController {
     // Show a confirmation
     Get.defaultDialog(
         title: 'Delete Article',
-        content: const Text('Are you sure you would to delete this article?'),
+        titleStyle: const TextStyle(color: GoPeduliColors.white),
+        content: const Text('Are you sure you would to delete this article?',
+            style: TextStyle(color: GoPeduliColors.white)),
+        backgroundColor: GoPeduliColors.primary,
         confirm: SizedBox(
           width: 60,
           child: ElevatedButton(
               onPressed: () async => await deleteOnConfirm(article),
               style: OutlinedButton.styleFrom(
+                  backgroundColor: GoPeduliColors.quaternary,
                   padding: const EdgeInsets.symmetric(
                       vertical: GoPeduliSize.paddingHeightSmall),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                           GoPeduliSize.borderRadiusSmall))),
-              child: const Text('Yes')),
+              child: const Text('Yes',
+                  style: TextStyle(color: GoPeduliColors.white))),
         ),
         cancel: SizedBox(
           width: 80,
-          child: OutlinedButton(
+          child: ElevatedButton(
               onPressed: () => Get.back(),
               style: OutlinedButton.styleFrom(
+                  backgroundColor: GoPeduliColors.quaternary,
                   padding: const EdgeInsets.symmetric(
                       vertical: GoPeduliSize.paddingHeightSmall),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                           GoPeduliSize.borderRadiusSmall))),
-              child: const Text('Cancel')),
+              child: const Text('Cancel',
+                  style: TextStyle(color: GoPeduliColors.white))),
         ));
   }
 

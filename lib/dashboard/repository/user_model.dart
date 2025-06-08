@@ -3,32 +3,25 @@ import 'package:gopeduli/dashboard/helper/enums.dart';
 import 'package:gopeduli/dashboard/helper/formatter.dart';
 
 class UserModel {
-  final String? id;
-  String firstName;
-  String lastName;
-  String userName;
+  String? id;
+  String name;
   String email;
   String phoneNumber;
-  String profilePicture;
   AppRole role;
   DateTime? createdAt;
   DateTime? updatedAt;
 
   UserModel({
     this.id,
-    this.firstName = '',
-    this.lastName = '',
-    this.userName = '',
+    this.name = '',
     required this.email,
     this.phoneNumber = '',
-    this.profilePicture = '',
     this.role = AppRole.user,
     this.createdAt,
     this.updatedAt,
   });
 
   //Helper method
-  String get fullName => '$firstName $lastName';
   String get formattedDate => GoPeduliFormatter.formatDate(createdAt);
   String get formattedUpdateAtDate => GoPeduliFormatter.formatDate(updatedAt);
   String get formattedPhoneNo =>
@@ -40,12 +33,9 @@ class UserModel {
   //Convert model to JSON structure for storing data in Firebase
   Map<String, dynamic> toJson() {
     return {
-      'FirstName': firstName,
-      'LastName': lastName,
-      'UserName': userName,
+      'Name': name,
       'Email': email,
       'PhoneNumber': phoneNumber,
-      'ProfilePicture': profilePicture,
       'Role': role.name.toString(),
       'CreatedAt': createdAt,
       'UpdatedAt': updatedAt = DateTime.now(),
@@ -59,15 +49,10 @@ class UserModel {
       final data = document.data()!;
       return UserModel(
         id: document.id,
-        firstName: data.containsKey('FirstName') ? data['FirstName'] ?? '' : '',
-        lastName: data.containsKey('LastName') ? data['LastName'] ?? '' : '',
-        userName: data.containsKey('UserName') ? data['UserName'] ?? '' : '',
+        name: data.containsKey('Name') ? data['Name'] ?? '' : '',
         email: data.containsKey('Email') ? data['Email'] ?? '' : '',
         phoneNumber:
             data.containsKey('PhoneNumber') ? data['PhoneNumber'] ?? '' : '',
-        profilePicture: data.containsKey('ProfilePicture')
-            ? data['ProfilePicture'] ?? ''
-            : '',
         role: data.containsKey('Role')
             ? (data['Role'] ?? AppRole.user) == AppRole.admin.name.toString()
                 ? AppRole.admin

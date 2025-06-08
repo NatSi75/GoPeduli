@@ -63,6 +63,26 @@ class GoPeduliSidebar extends StatelessWidget {
                       icon: Symbols.medication_rounded,
                       itemName: 'Medicines',
                     ),
+                    GoPeduliMenuItem(
+                      route: GoPeduliRoutes.doctors,
+                      icon: Symbols.masks_rounded,
+                      itemName: 'Doctors',
+                    ),
+                    GoPeduliMenuItem(
+                      route: GoPeduliRoutes.authors,
+                      icon: Symbols.person_edit_rounded,
+                      itemName: 'Authors',
+                    ),
+                    GoPeduliMenuItem(
+                      route: GoPeduliRoutes.users,
+                      icon: Symbols.user_attributes_rounded,
+                      itemName: 'Users',
+                    ),
+                    GoPeduliMenuItem(
+                      route: GoPeduliRoutes.couriers,
+                      icon: Symbols.directions_bike_rounded,
+                      itemName: 'Couriers',
+                    ),
                     Text(
                       'Other',
                       style: TextStyle(

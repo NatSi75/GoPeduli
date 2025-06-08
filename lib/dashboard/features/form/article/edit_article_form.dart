@@ -83,30 +83,31 @@ class EditArticleForm extends StatelessWidget {
               ),
             ),
             const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
-            TextFormField(
-              controller: controller.author,
-              validator: (value) =>
-                  GoPeduliValidator.validateEmptyText('Author', value),
-              cursorColor: GoPeduliColors.primary,
-              style: const TextStyle(
-                  fontSize: GoPeduliSize.fontSizeBody, color: Colors.black),
-              decoration: const InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: GoPeduliColors.primary, width: 1),
+            Obx(() {
+              return DropdownButtonFormField<String>(
+                value: controller.author.value,
+                validator: (value) =>
+                    GoPeduliValidator.validateEmptyText('Author', value),
+                onChanged: (value) => controller.author.value = value,
+                items: controller.authors.map((author) {
+                  return DropdownMenuItem<String>(
+                    value: author.name,
+                    child: Text(author.name),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: GoPeduliColors.primary),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: GoPeduliColors.primary),
+                  ),
+                  labelText: 'Author',
+                  labelStyle: TextStyle(
+                      color: Colors.black, fontSize: GoPeduliSize.fontSizeBody),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: GoPeduliColors.primary, width: 1),
-                ),
-                label: Text(
-                  'Author',
-                  style: TextStyle(fontSize: GoPeduliSize.fontSizeBody),
-                ),
-                labelStyle: TextStyle(
-                    color: Colors.black, fontSize: GoPeduliSize.fontSizeBody),
-              ),
-            ),
+              );
+            }),
             const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
             TextFormField(
               controller: controller.verifiedBy,

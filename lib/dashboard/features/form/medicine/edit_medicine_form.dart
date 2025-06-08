@@ -8,6 +8,7 @@ import 'package:gopeduli/dashboard/helper/color.dart';
 import 'package:gopeduli/dashboard/helper/size.dart';
 import 'package:gopeduli/dashboard/helper/validation.dart';
 import 'package:gopeduli/dashboard/repository/medicine_model.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 class EditMedicineForm extends StatelessWidget {
   const EditMedicineForm({super.key, required this.medicine});
@@ -110,30 +111,101 @@ class EditMedicineForm extends StatelessWidget {
               ),
             ),
             const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
-            TextFormField(
-              controller: controller.category,
-              validator: (value) =>
-                  GoPeduliValidator.validateEmptyText('Category', value),
-              cursorColor: GoPeduliColors.primary,
-              style: const TextStyle(
-                  fontSize: GoPeduliSize.fontSizeBody, color: Colors.black),
-              decoration: const InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: GoPeduliColors.primary, width: 1),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Add New Category',
+                    style: TextStyle(
+                        fontSize: GoPeduliSize.fontSizeBody,
+                        color: Colors.black)),
+                const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        cursorColor: GoPeduliColors.primary,
+                        controller: controller.category,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter new category',
+                          hintStyle: TextStyle(
+                              fontSize: GoPeduliSize.fontSizeBody,
+                              color: Colors.grey),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: GoPeduliColors.primary, width: 1),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: GoPeduliColors.primary, width: 1),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        controller.createCategory();
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: GoPeduliColors.primary,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  GoPeduliSize.borderRadiusSmall))),
+                      child: const Text('Add',
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: GoPeduliSize.fontSizeBody)),
+                    )
+                  ],
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: GoPeduliColors.primary, width: 1),
+                const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+                const Text(
+                  'Select Categories',
+                  style: TextStyle(
+                      fontSize: GoPeduliSize.fontSizeBody, color: Colors.black),
                 ),
-                label: Text(
-                  'Category',
-                  style: TextStyle(fontSize: GoPeduliSize.fontSizeBody),
-                ),
-                labelStyle: TextStyle(
-                    color: Colors.black, fontSize: GoPeduliSize.fontSizeBody),
-              ),
+                const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+                Obx(() => Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: controller.categorys.map((cat) {
+                        final isSelected = controller.selectedCategories
+                            .contains(cat.nameCategory);
+                        return FilterChip(
+                          label: Text(cat.nameCategory,
+                              style: const TextStyle(
+                                  fontSize: GoPeduliSize.fontSizeBody,
+                                  color: Colors.black)),
+                          backgroundColor: GoPeduliColors.white,
+                          selectedColor: GoPeduliColors.primary,
+                          selected: isSelected,
+                          onSelected: (bool selected) {
+                            if (selected) {
+                              controller.selectedCategories
+                                  .add(cat.nameCategory);
+                            } else {
+                              controller.selectedCategories
+                                  .remove(cat.nameCategory);
+                            }
+                          },
+                        );
+                      }).toList(),
+                    )),
+              ],
             ),
+            const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+            Obx(() => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: controller.categorys.map((cat) {
+                    return Chip(
+                      label: Text(cat.nameCategory),
+                      onDeleted: () => controller.deleteCategory(cat),
+                      deleteIcon: const Icon(Symbols.delete_forever_rounded,
+                          color: Colors.red),
+                    );
+                  }).toList(),
+                )),
             const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
             Obx(() {
               final classList = medicineController.allMedicines

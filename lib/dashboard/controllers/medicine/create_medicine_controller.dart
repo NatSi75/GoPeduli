@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:gopeduli/dashboard/controllers/medicine/medicine_controller.dart';
 import 'package:gopeduli/dashboard/features/popup/loaders.dart';
+import 'package:gopeduli/dashboard/repository/category_model.dart';
+import 'package:gopeduli/dashboard/repository/category_repository.dart';
 import 'package:gopeduli/dashboard/repository/medicine_model.dart';
 import 'package:gopeduli/dashboard/repository/medicine_repository.dart';
 import 'package:gopeduli/dashboard/routes/routes.dart';
@@ -16,6 +18,8 @@ class CreateMedicineController extends GetxController {
   static CreateMedicineController get instance => Get.find();
 
   RxString imageURL = ''.obs;
+  List<CategoryModel> categorys = <CategoryModel>[].obs;
+  final RxList<String> selectedCategories = <String>[].obs;
   final nameProduct = TextEditingController();
   final description = TextEditingController();
   final nameMedicine = TextEditingController();
@@ -30,11 +34,54 @@ class CreateMedicineController extends GetxController {
     nameProduct.clear();
     description.clear();
     nameMedicine.clear();
-    category.clear();
+    selectedCategories.clear();
     classMedicine.clear();
     price.clear();
     stock.clear();
     imageDataNotifier.value = null;
+  }
+
+  @override
+  void onInit() {
+    fetchCategory();
+    super.onInit();
+  }
+
+  void fetchCategory() async {
+    try {
+      final result = await CategoryRepository.instance.getAllCategory();
+      categorys.assignAll(result);
+    } catch (e) {
+      GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
+    }
+  }
+
+  Future<void> createCategory() async {
+    try {
+      final newCategory = CategoryModel(
+          id: '',
+          nameCategory: category.text.trim(),
+          createdAt: DateTime.now());
+
+      newCategory.id =
+          await CategoryRepository.instance.createCategory(newCategory);
+
+      category.clear();
+
+      fetchCategory();
+    } catch (e) {
+      GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
+    }
+  }
+
+  deleteCategory(CategoryModel category) async {
+    try {
+      // Delete Firestore Data
+      await CategoryRepository.instance.deleteCategory(category.id);
+      fetchCategory();
+    } catch (e) {
+      GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
+    }
   }
 
   Future<void> pickImage() async {
@@ -85,7 +132,7 @@ class CreateMedicineController extends GetxController {
           nameProduct: nameProduct.text.trim(),
           description: description.text.trim(),
           nameMedicine: nameMedicine.text.trim(),
-          category: category.text.trim(),
+          category: selectedCategories.join(', '),
           classMedicine: classMedicine.text.trim(),
           price: price.text.trim(),
           stock: stock.text.trim(),
@@ -102,8 +149,7 @@ class CreateMedicineController extends GetxController {
       GoPeduliLoaders.successSnackBar(
           title: 'Congratulations', message: 'New Medicine has been added.');
       Future.delayed(const Duration(milliseconds: 2000), () {
-        Get.offNamed(
-            GoPeduliRoutes.medicines); // Ganti '/article' sesuai route kamu
+        Get.offNamed(GoPeduliRoutes.medicines);
       });
     } catch (e) {
       GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());

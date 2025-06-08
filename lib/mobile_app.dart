@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../widgets/navigation.dart';
 import '../screens/splash_screen.dart';
 
 class MobileApp extends StatelessWidget {
