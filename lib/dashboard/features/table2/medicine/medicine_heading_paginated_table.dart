@@ -22,7 +22,7 @@ class GoPeduliHeadingPaginatedTableMedicine extends StatelessWidget {
             child: Row(
               children: [
                 SizedBox(
-                  width: 200,
+                  width: 175,
                   child: ElevatedButton(
                       onPressed: () =>
                           Get.toNamed(GoPeduliRoutes.createMedicine),
@@ -33,7 +33,7 @@ class GoPeduliHeadingPaginatedTableMedicine extends StatelessWidget {
                               borderRadius: BorderRadius.circular(
                                   GoPeduliSize.borderRadiusSmall))),
                       child: const Text(
-                        'Create New Medicine',
+                        'Create Medicine',
                         style: TextStyle(fontSize: GoPeduliSize.fontSizeBody),
                       )),
                 ),

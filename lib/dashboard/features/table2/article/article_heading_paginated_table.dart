@@ -22,7 +22,7 @@ class GoPeduliHeadingPaginatedTableArticle extends StatelessWidget {
             child: Row(
               children: [
                 SizedBox(
-                  width: 200,
+                  width: 175,
                   child: ElevatedButton(
                       onPressed: () =>
                           Get.toNamed(GoPeduliRoutes.createArticle),
@@ -33,7 +33,7 @@ class GoPeduliHeadingPaginatedTableArticle extends StatelessWidget {
                               borderRadius: BorderRadius.circular(
                                   GoPeduliSize.borderRadiusSmall))),
                       child: const Text(
-                        'Create New Article',
+                        'Create Article',
                         style: TextStyle(fontSize: GoPeduliSize.fontSizeBody),
                       )),
                 ),

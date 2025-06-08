@@ -5,6 +5,8 @@ import 'package:gopeduli/dashboard/controllers/article/article_controller.dart';
 import 'package:gopeduli/dashboard/features/popup/loaders.dart';
 import 'package:gopeduli/dashboard/repository/article_model.dart';
 import 'package:gopeduli/dashboard/repository/article_repository.dart';
+import 'package:gopeduli/dashboard/repository/author_model.dart';
+import 'package:gopeduli/dashboard/repository/user_model.dart';
 import 'package:gopeduli/dashboard/routes/routes.dart';
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
@@ -15,20 +17,47 @@ final imageUrlNotifier = ValueNotifier<String?>(null);
 class CreateArticleController extends GetxController {
   static CreateArticleController get instance => Get.find();
 
+  List<AuthorModel> authors = <AuthorModel>[].obs;
+  List<UserModel> doctors = <UserModel>[].obs;
   RxString imageURL = ''.obs;
   final title = TextEditingController();
   final body = TextEditingController();
-  final author = TextEditingController();
-  final verifiedBy = TextEditingController();
+  RxnString author = RxnString();
+  RxnString verifiedBy = RxnString();
   final formKey = GlobalKey<FormState>();
 
   void resetFields() {
     title.clear();
     body.clear();
-    author.clear();
-    verifiedBy.clear();
+    author.value = null;
+    verifiedBy.value = null;
     imageURL.value = '';
     imageDataNotifier.value = null;
+  }
+
+  @override
+  void onInit() {
+    fetchAuthors();
+    fetchDoctors();
+    super.onInit();
+  }
+
+  void fetchAuthors() async {
+    try {
+      final result = await ArticleRepository.instance.getAllAuthors();
+      authors.assignAll(result);
+    } catch (e) {
+      GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
+    }
+  }
+
+  void fetchDoctors() async {
+    try {
+      final result = await ArticleRepository.instance.getAllDoctors();
+      doctors.assignAll(result);
+    } catch (e) {
+      GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
+    }
   }
 
   Future<void> pickImage() async {
@@ -78,8 +107,8 @@ class CreateArticleController extends GetxController {
           image: imageURL.value,
           title: title.text.trim(),
           body: body.text.trim(),
-          author: author.text.trim(),
-          verifiedBy: verifiedBy.text.trim(),
+          author: author.value ?? '',
+          verifiedBy: verifiedBy.value ?? '',
           createdAt: DateTime.now());
 
       newArticle.id =

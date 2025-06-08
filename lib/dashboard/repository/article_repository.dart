@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:gopeduli/dashboard/repository/article_model.dart';
+import 'package:gopeduli/dashboard/repository/author_model.dart';
+import 'package:gopeduli/dashboard/repository/user_model.dart';
 
 class ArticleRepository extends GetxController {
   static ArticleRepository get instance => Get.find();
@@ -12,6 +14,41 @@ class ArticleRepository extends GetxController {
       final snapshot = await _db.collection("articles").get();
       final result =
           snapshot.docs.map((e) => ArticleModel.fromSnapshot(e)).toList();
+      return result;
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
+    }
+  }
+
+  // Get all article authors from the 'authors' collection
+  Future<List<AuthorModel>> getAllAuthors() async {
+    try {
+      final authorsQuery = await _db.collection("authors").get();
+      final authors = authorsQuery.docs
+          .map((doc) => AuthorModel.fromSnapshot(doc))
+          .toList();
+      return authors;
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
+    }
+  }
+
+  // Get all doctors from the 'users' collection
+  Future<List<UserModel>> getAllDoctors() async {
+    try {
+      final snapshot = await _db
+          .collection("users")
+          .where(
+            'Role',
+            isEqualTo: 'doctor',
+          )
+          .get();
+      final result =
+          snapshot.docs.map((e) => UserModel.fromSnapshot(e)).toList();
       return result;
     } on FirebaseException catch (e) {
       throw e.message!;

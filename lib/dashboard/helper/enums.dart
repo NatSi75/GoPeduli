@@ -1,1 +1,1 @@
-enum AppRole { admin, user }
+enum AppRole { admin, user, doctor, member, courier }

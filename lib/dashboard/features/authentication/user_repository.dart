@@ -11,6 +11,66 @@ class UserRepository extends GetxController {
   // FirebaseAuth instance
   final _db = FirebaseFirestore.instance;
 
+  // Get all users from the 'users' collection
+  Future<List<UserModel>> getAllUsers() async {
+    try {
+      final snapshot = await _db
+          .collection("users")
+          .where(
+            'Role',
+            isEqualTo: 'member',
+          )
+          .get();
+      final result =
+          snapshot.docs.map((e) => UserModel.fromSnapshot(e)).toList();
+      return result;
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
+    }
+  }
+
+  // Get all doctors from the 'users' collection
+  Future<List<UserModel>> getAllDoctors() async {
+    try {
+      final snapshot = await _db
+          .collection("users")
+          .where(
+            'Role',
+            isEqualTo: 'doctor',
+          )
+          .get();
+      final result =
+          snapshot.docs.map((e) => UserModel.fromSnapshot(e)).toList();
+      return result;
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
+    }
+  }
+
+  // Get all couriers from the 'users' collection
+  Future<List<UserModel>> getAllCouriers() async {
+    try {
+      final snapshot = await _db
+          .collection("users")
+          .where(
+            'Role',
+            isEqualTo: 'courier',
+          )
+          .get();
+      final result =
+          snapshot.docs.map((e) => UserModel.fromSnapshot(e)).toList();
+      return result;
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
+    }
+  }
+
   // Function to save user data to Firestore.
   Future<void> createUser(UserModel user) async {
     try {
@@ -19,6 +79,17 @@ class UserRepository extends GetxController {
       throw GoPeduliAuthException(e.code).message;
     } catch (e) {
       throw 'An error occurred while saving user data: $e';
+    }
+  }
+
+  // Delete an existing user document from the 'users' collection
+  Future<void> deleteUser(String userId) async {
+    try {
+      await _db.collection('users').doc(userId).delete();
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
     }
   }
 

@@ -79,55 +79,57 @@ class CreateArticleFrom extends StatelessWidget {
               ),
             ),
             const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
-            TextFormField(
-              controller: controller.author,
-              validator: (value) =>
-                  GoPeduliValidator.validateEmptyText('Author', value),
-              cursorColor: GoPeduliColors.primary,
-              style: const TextStyle(
-                  fontSize: GoPeduliSize.fontSizeBody, color: Colors.black),
-              decoration: const InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: GoPeduliColors.primary, width: 1),
+            Obx(() {
+              return DropdownButtonFormField<String>(
+                value: controller.author.value,
+                validator: (value) =>
+                    GoPeduliValidator.validateEmptyText('Author', value),
+                onChanged: (value) => controller.author.value = value,
+                items: controller.authors.map((author) {
+                  return DropdownMenuItem<String>(
+                    value: author.name,
+                    child: Text(author.name),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: GoPeduliColors.primary),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: GoPeduliColors.primary),
+                  ),
+                  labelText: 'Author',
+                  labelStyle: TextStyle(
+                      color: Colors.black, fontSize: GoPeduliSize.fontSizeBody),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: GoPeduliColors.primary, width: 1),
-                ),
-                label: Text(
-                  'Author',
-                  style: TextStyle(fontSize: GoPeduliSize.fontSizeBody),
-                ),
-                labelStyle: TextStyle(
-                    color: Colors.black, fontSize: GoPeduliSize.fontSizeBody),
-              ),
-            ),
+              );
+            }),
             const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
-            TextFormField(
-              controller: controller.verifiedBy,
-              validator: (value) =>
-                  GoPeduliValidator.validateEmptyText('Verified By', value),
-              cursorColor: GoPeduliColors.primary,
-              style: const TextStyle(
-                  fontSize: GoPeduliSize.fontSizeBody, color: Colors.black),
-              decoration: const InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: GoPeduliColors.primary, width: 1),
+            Obx(() {
+              return DropdownButtonFormField<String>(
+                value: controller.verifiedBy.value,
+                validator: (value) =>
+                    GoPeduliValidator.validateEmptyText('Doctor', value),
+                onChanged: (value) => controller.verifiedBy.value = value,
+                items: controller.doctors.map((doctor) {
+                  return DropdownMenuItem<String>(
+                    value: doctor.name,
+                    child: Text(doctor.name),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: GoPeduliColors.primary),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: GoPeduliColors.primary),
+                  ),
+                  labelText: 'Doctor',
+                  labelStyle: TextStyle(
+                      color: Colors.black, fontSize: GoPeduliSize.fontSizeBody),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: GoPeduliColors.primary, width: 1),
-                ),
-                label: Text(
-                  'Verified By',
-                  style: TextStyle(fontSize: GoPeduliSize.fontSizeBody),
-                ),
-                labelStyle: TextStyle(
-                    color: Colors.black, fontSize: GoPeduliSize.fontSizeBody),
-              ),
-            ),
+              );
+            }),
             const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
             Center(
               child: ValueListenableBuilder<Uint8List?>(
