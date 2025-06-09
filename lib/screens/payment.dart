@@ -1,10 +1,15 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../models/cart_model.dart';
-import 'cart_screen.dart';
 import 'transaction.dart';
-import 'dart:async';
+import 'cart_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final List<CartItem> items;
@@ -17,16 +22,74 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   late String transactionId;
-  late String qrData;
-  Duration remainingTime = const Duration(minutes: 1);
+  String? qrData;
+  String? orderId;
+  Duration remainingTime = const Duration(minutes: 10);
   Timer? countdownTimer;
+  Timer? pollingTimer;
 
   @override
   void initState() {
     super.initState();
     transactionId = const Uuid().v4();
-    qrData = 'https://pembayaran.gopeduli.com/pay/$transactionId';
+    generateSnapToken(); // Generate Snap Token saat layar dibuka
     startCountdown();
+  }
+
+  void generateSnapToken() async {
+    final url = Uri.parse(
+        'https://us-central1-gopeduli-4f028.cloudfunctions.net/createSnapToken');
+
+    final user = FirebaseAuth.instance.currentUser;
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user?.uid)
+        .get();
+    final email = userDoc.get('Email') ?? 'user@example.com';
+    final name = userDoc.get('Name') ?? 'User';
+
+    final totalAmount = widget.items
+        .fold<double>(0.0, (sum, item) => sum + (item.price * item.quantity))
+        .toInt();
+
+    final body = {
+      "amount": totalAmount,
+      "customer": {
+        "first_name": name,
+        "email": email,
+      },
+      "user_id": user?.uid,
+      "items": widget.items
+          .map((item) => {
+                "name": item.name,
+                "quantity": item.quantity,
+                "price": item.price,
+                "image": item.imageUrl,
+              })
+          .toList(),
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          qrData =
+              "https://app.sandbox.midtrans.com/snap/v2/vtweb/${data['snapToken']}";
+          orderId = data['orderId'];
+        });
+        startPolling(); // Mulai polling setelah dapat orderId
+      } else {
+        print("Failed to get snap token: ${response.body}");
+      }
+    } catch (e) {
+      print("Error generating snap token: $e");
+    }
   }
 
   void startCountdown() {
@@ -37,6 +100,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         });
       } else {
         countdownTimer?.cancel();
+        pollingTimer?.cancel();
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => CartScreen(cartItems: widget.items),
@@ -47,13 +111,41 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
   }
 
+  void startPolling() {
+    pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+      if (orderId == null) return;
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection('transactions')
+          .doc(orderId)
+          .get();
+
+      if (snapshot.exists) {
+        final status = snapshot.get('status');
+        if (status == 'settlement' || status == 'capture') {
+          countdownTimer?.cancel();
+          pollingTimer?.cancel();
+
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (_) => TransactionSuccessScreen(items: widget.items),
+              ),
+              (route) => false,
+            );
+          }
+        }
+      }
+    });
+  }
+
   @override
   void dispose() {
     countdownTimer?.cancel();
+    pollingTimer?.cancel();
     super.dispose();
   }
 
-  // Fungsi helper untuk format Rupiah dengan titik ribuan
   String formatRupiah(double amount) {
     final intAmount = amount.toInt();
     final rupiah = intAmount.toString().replaceAllMapped(
@@ -67,16 +159,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget build(BuildContext context) {
     double total =
         widget.items.fold(0, (sum, item) => sum + (item.price * item.quantity));
-
     double tax = total * 0.1;
     double finalTotal = total + tax;
-
     String formattedTime =
         '${remainingTime.inMinutes.toString().padLeft(2, '0')}:${(remainingTime.inSeconds % 60).toString().padLeft(2, '0')}';
 
     const Color bgColor = Color(0xffe8f3f1);
     const Color primaryColor = Color(0xff199a8e);
     const Color whiteColor = Colors.white;
+    const Color textGray = Color(0xFF6B7280);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -88,226 +179,143 @@ class _PaymentScreenState extends State<PaymentScreen> {
           'Payment',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            letterSpacing: 1.1,
-            color: Color.fromARGB(255, 255, 255, 255),
+            letterSpacing: 0.5,
+            color: whiteColor,
+            fontSize: 18,
           ),
         ),
-        leading: BackButton(color: whiteColor),
+        leading: const BackButton(color: whiteColor),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
+            // SECTION: QR Code
+            const SizedBox(height: 10),
+            const Text(
+              'Scan here to pay',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: primaryColor,
+              ),
+            ),
+            const SizedBox(height: 12),
+            qrData == null
+                ? const CircularProgressIndicator()
+                : QrImageView(
+                    data: qrData!,
+                    version: QrVersions.auto,
+                    size: 210,
+                    backgroundColor: whiteColor,
+                  ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.timer_outlined, color: Colors.redAccent),
+                const SizedBox(width: 6),
+                Text(
+                  '${formattedTime}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.red.shade400,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+
+            // SECTION: Order Summary
+            const SizedBox(height: 36),
             Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: whiteColor,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: primaryColor.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 6),
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              padding: const EdgeInsets.all(20),
-              child: QrImageView(
-                data: qrData,
-                version: QrVersions.auto,
-                size: 220,
-                backgroundColor: whiteColor,
-              ),
-            ),
-            const SizedBox(height: 15),
-            Text(
-              '$formattedTime',
-              style: TextStyle(
-                fontSize: 19,
-                color: const Color.fromARGB(255, 237, 5, 5).withOpacity(0.8),
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 40),
-
-            // Keterangan "Payment Detail" sebelum list produk
-            Align(
-              alignment: Alignment.center,
-              child: Text(
-                'Payment Detail',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.w900,
-                  color: primaryColor,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // List produk digabung dalam satu container
-            Container(
-              padding: const EdgeInsets.all(5),
               child: Column(
-                children: widget.items.map((item) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 10),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2a2c2e),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.shopping_bag_outlined,
+                          color: primaryColor, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Order Summary',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.asset(
-                            item.imageUrl,
-                            width: 90,
-                            height: 90,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Nama Produk
-                              Text(
-                                item.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ...widget.items.map((item) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            ClipRRect(
+                              child: Image.network(
+                                item.imageUrl,
+                                width: 70,
+                                height: 80,
+                                fit: BoxFit.fill,
                               ),
-                              const SizedBox(height: 2),
-
-                              // Harga per satuan dan jumlah
-                              Row(
+                            ),
+                            const SizedBox(width: 40),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(Icons.price_change,
-                                      color: Colors.greenAccent, size: 13),
-                                  const SizedBox(width: 6),
                                   Text(
-                                    formatRupiah(item.price),
-                                    style: TextStyle(
-                                      color:
-                                          Colors.greenAccent.withOpacity(0.9),
+                                    item.name,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      fontSize: 10,
+                                      fontSize: 14,
                                     ),
                                   ),
-                                  const SizedBox(width: 14),
-                                  const Icon(Icons.confirmation_number_outlined,
-                                      color: Colors.amber, size: 13),
-                                  const SizedBox(width: 6),
+                                  const SizedBox(height: 2),
                                   Text(
                                     'x${item.quantity}',
                                     style: TextStyle(
-                                      color: Colors.white.withOpacity(0.85),
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 10,
+                                      color: textGray,
+                                      fontSize: 13,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 20),
-
-                              // Total Harga
-                              Row(
-                                children: [
-                                  const Icon(Icons.shopping_bag,
-                                      size: 18, color: Colors.cyanAccent),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Total: ${formatRupiah(item.price * item.quantity)}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                      color: Colors.cyanAccent,
-                                    ),
-                                  ),
-                                ],
+                            ),
+                            Text(
+                              formatRupiah(item.price * item.quantity),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Summary container warna beda, teks dan icon hitam
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              decoration: BoxDecoration(
-                color: const Color(0xffd4e7e4), // warna beda dari list produk
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.black,
-                  width: 2,
-                ),
-              ),
-              child: Column(
-                children: [
-                  _buildSummaryRow('Subtotal', total, Colors.black,
-                      icon: Icons.receipt_long),
-                  const Divider(
-                      color: Colors.black54, height: 28, thickness: 1),
-                  _buildSummaryRow('Tax (10%)', tax, Colors.black,
-                      icon: Icons.percent),
-                  const Divider(
-                      color: Colors.black54, height: 28, thickness: 1),
-                  _buildSummaryRow(
-                    'Total to Pay',
-                    finalTotal,
-                    Colors.black,
-                    icon: Icons.payment,
-                    isTotal: true,
-                  ),
+                      )),
+                  const Divider(height: 30),
+                  _buildSummaryRow('Subtotal', total,
+                      icon: Icons.attach_money_outlined),
+                  _buildSummaryRow('Tax (10%)', tax, icon: Icons.receipt_long),
+                  const SizedBox(height: 6),
+                  _buildSummaryRow('Total', finalTotal,
+                      isTotal: true, icon: Icons.payment_outlined),
                 ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        TransactionSuccessScreen(items: widget.items),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Text(
-                'Buy Now',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
               ),
             ),
           ],
@@ -316,37 +324,57 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String label, double amount, Color textColor,
-      {IconData? icon, bool isTotal = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            if (icon != null) ...[
-              Icon(icon,
-                  color: textColor.withOpacity(0.8), size: isTotal ? 26 : 20),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: isTotal ? 18 : 14, // font size diperkecil
-                fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-                color: textColor,
+  Widget _buildSummaryRow(String title, double value,
+      {bool isTotal = false, IconData? icon}) {
+    final Color primaryColor = const Color(0xff199a8e); // hijau kesehatan
+    final Color bgColor =
+        const Color(0xffd0f0e9); // hijau terang untuk background total
+
+    Widget content = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              if (icon != null)
+                Icon(
+                  icon,
+                  size: 18,
+                  color: isTotal ? Colors.black : Colors.grey[700],
+                ),
+              if (icon != null) const SizedBox(width: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: isTotal ? 16 : 14,
+                  fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+                  color: isTotal ? Colors.black : Colors.black87,
+                ),
               ),
-            ),
-          ],
-        ),
-        Text(
-          formatRupiah(amount),
-          style: TextStyle(
-            fontSize: isTotal ? 18 : 14,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: textColor,
+            ],
           ),
-        ),
-      ],
+          Text(
+            formatRupiah(value),
+            style: TextStyle(
+              fontSize: isTotal ? 16 : 14,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              color: isTotal ? Colors.black : Colors.black87,
+            ),
+          ),
+        ],
+      ),
     );
+
+    // Jika total, bungkus dengan container berwarna
+    return isTotal
+        ? Container(
+            decoration: BoxDecoration(
+              color: bgColor,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: content,
+          )
+        : content;
   }
 }

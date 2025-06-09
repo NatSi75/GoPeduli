@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:gopeduli/models/product_model.dart';
+import 'package:gopeduli/models/cart_model.dart';
 import 'cart_screen.dart';
-import '../models/cart_model.dart';
-import '../models/product_model.dart';
-import 'detail.dart';
+import 'detail.dart'; // Pastikan ada halaman detail
 
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -11,113 +12,37 @@ class ShopScreen extends StatefulWidget {
   State<ShopScreen> createState() => _ShopScreenState();
 }
 
-class _ShopScreenState extends State<ShopScreen> {
-  final List<ProductModel> products = [
-    ProductModel(
-      id: '1',
-      name: 'Paracetamol 500 mg',
-      price: 30000,
-      image: 'assets/images/paracetamol1.png',
-      description: '''
-Paracetamol 500 mg adalah obat pereda nyeri dan penurun demam yang umum digunakan. Setiap tablet atau kaplet mengandung 500 mg paracetamol.
-
-Indikasi: Meredakan nyeri ringan hingga sedang (misalnya sakit kepala, sakit gigi, nyeri otot, nyeri haid) dan menurunkan demam.
-
-Dosis Umum: Dewasa: 1-2 tablet/kaplet setiap 4-6 jam, tidak melebihi 4 gram (8 tablet/kaplet) dalam 24 jam.
-
-Perhatian: Jangan melebihi dosis yang dianjurkan karena dapat menyebabkan kerusakan hati. Hati-hati penggunaan pada penderita gangguan fungsi hati dan ginjal.
-''',
-      types: ['Antipiretik', 'Analgesik', 'Obat Bebas'],
-      stock: 192,
-    ),
-    ProductModel(
-      id: '2',
-      name: 'Ibuprofen 400 mg',
-      price: 40000,
-      image: 'assets/images/ibuprofen.png',
-      description: '''
-Ibuprofen 400 mg adalah obat golongan antiinflamasi nonsteroid (OAINS) yang efektif untuk meredakan nyeri, menurunkan demam, dan mengurangi peradangan. Setiap tablet atau kaplet mengandung 400 mg ibuprofen. Obat ini bekerja dengan menghambat produksi prostaglandin, yaitu zat kimia dalam tubuh yang menjadi penyebab utama rasa nyeri, demam, dan peradangan.
-
-Indikasi:
-
-Meredakan nyeri: Sangat efektif untuk mengatasi berbagai jenis nyeri ringan hingga sedang, seperti sakit kepala (termasuk migrain), sakit gigi, nyeri otot, nyeri sendi, nyeri akibat cedera ringan, dan nyeri haid (dismenore).
-Menurunkan demam: Membantu menurunkan suhu tubuh saat demam.
-Mengurangi peradangan: Bermanfaat untuk kondisi yang melibatkan peradangan, seperti radang sendi ringan atau bengkak akibat cedera.
-Dosis Umum Dewasa:
-
-Dosis yang dianjurkan adalah 1 tablet (400 mg) setiap 4-6 jam, sesuai kebutuhan.
-Penting untuk tidak melebihi dosis maksimal 2400 mg (6 tablet 400 mg) dalam waktu 24 jam.
-Sebaiknya dikonsumsi setelah makan untuk membantu mengurangi risiko iritasi lambung.
-Perhatian dan Peringatan:
-
-Gangguan Lambung: Gunakan dengan hati-hati pada individu dengan riwayat penyakit maag, tukak lambung, atau masalah pencernaan lainnya, karena ibuprofen dapat meningkatkan risiko iritasi atau perdarahan lambung.
-Gangguan Ginjal dan Hati: Hati-hati pada penderita gangguan fungsi ginjal atau hati.
-Asma: Dapat memicu serangan asma pada beberapa penderita yang sensitif terhadap OAINS.
-Penyakit Jantung dan Tekanan Darah Tinggi: Penggunaan jangka panjang atau dosis tinggi pada beberapa kasus dapat meningkatkan risiko masalah kardiovaskular.
-Interaksi Obat: Hindari penggunaan bersamaan dengan OAINS lain (misalnya naproxen, aspirin dosis tinggi) atau obat pengencer darah tanpa konsultasi dokter.
-Kehamilan dan Menyusui: Konsultasikan dengan dokter sebelum menggunakan obat ini jika Anda hamil atau menyusui.
-Efek Samping Umum: Mual, muntah, diare, sembelit, sakit perut, pusing, atau ruam kulit. Jika efek samping berlanjut atau memburuk, segera hentikan penggunaan dan hubungi dokter.
-Penting: Selalu ikuti petunjuk penggunaan pada kemasan obat atau sesuai anjuran dokter/apoteker. Jika nyeri tidak mereda atau demam tidak turun setelah beberapa hari penggunaan, segera konsultasikan ke tenaga medis.
-''',
-      types: ['Antiinflamasi Nonsteroid'],
-      stock: 13,
-    ),
-    ProductModel(
-      id: '3',
-      name: 'Paracetamol 10 kaplet',
-      price: 15000,
-      image: 'assets/images/panadol1.png',
-      description: 'Obat pereda nyeri ringan dan penurun panas.',
-      types: ['Antipiretik', 'Analgesik'],
-      stock: 20,
-    ),
-    ProductModel(
-      id: '4',
-      name: 'Sanmol 500 mg',
-      price: 30000,
-      image: 'assets/images/sanmol.png',
-      description:
-          'Sanmol efektif mengatasi demam dan nyeri pada anak-anak dan dewasa.',
-      types: ['Antipiretik', 'Analgesik'],
-      stock: 20,
-    ),
-    ProductModel(
-      id: '5',
-      name: 'Panadol Extra',
-      price: 15000,
-      image: 'assets/images/panadol2.png',
-      description:
-          'Panadol Extra mengandung kafein untuk membantu meningkatkan efektivitas.',
-      types: ['Antipiretik', 'Analgesik'],
-      stock: 20,
-    ),
-  ];
-
+class _ShopScreenState extends State<ShopScreen>
+    with AutomaticKeepAliveClientMixin {
   List<CartItem> cartItems = [];
   String searchQuery = '';
   final TextEditingController searchController = TextEditingController();
 
-  List<ProductModel> get filteredProducts {
-    if (searchQuery.isEmpty) {
-      return products;
-    } else {
-      return products.where((product) {
-        return product.name.toLowerCase().contains(searchQuery.toLowerCase());
+  Stream<List<ProductModel>> getMedicines() {
+    return FirebaseFirestore.instance
+        .collection('medicines')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return ProductModel.fromMap(doc.data(), doc.id);
       }).toList();
-    }
+    });
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
   void addToCart(ProductModel product) {
     setState(() {
-      final index = cartItems.indexWhere((item) => item.name == product.name);
-
+      final index =
+          cartItems.indexWhere((item) => item.name == product.nameProduct);
       if (index != -1) {
         cartItems[index].quantity++;
       } else {
         cartItems.add(CartItem(
           id: DateTime.now().toString(),
-          name: product.name,
-          imageUrl: product.image,
+          name: product.nameProduct,
+          imageUrl: product.imageUrl,
           price: product.price.toDouble(),
           product: product,
         ));
@@ -141,70 +66,84 @@ Penting: Selalu ikuti petunjuk penggunaan pada kemasan obat atau sesuai anjuran 
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Custom AppBar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          children: [
+            // Custom AppBar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  BackButton(
-                    color: Colors.black,
-                  ),
-                  const Text(
-                    'Shop',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon:
-                            const Icon(Icons.shopping_cart_outlined, size: 28),
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  CartScreen(cartItems: cartItems),
-                            ),
-                          );
-                          setState(() {});
-                        },
+                  const Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Shop',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Inter',
+                        color: Colors.black,
                       ),
-                      if (getTotalQuantity() > 0)
-                        Positioned(
-                          right: 6,
-                          top: 6,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              '${getTotalQuantity()}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.white,
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.shopping_cart_outlined,
+                              size: 28),
+                          onPressed: () async {
+                            final updatedCart =
+                                await Navigator.push<List<CartItem>>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    CartScreen(cartItems: cartItems),
+                              ),
+                            );
+                            if (updatedCart != null) {
+                              setState(() {
+                                cartItems = updatedCart;
+                              });
+                            }
+                          },
+                        ),
+                        if (getTotalQuantity() > 0)
+                          Positioned(
+                            right: 6,
+                            top: 6,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '${getTotalQuantity()}',
+                                style: const TextStyle(
+                                    fontSize: 10, color: Colors.white),
                               ),
                             ),
-                          ),
-                        )
-                    ],
+                          )
+                      ],
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+            ),
 
-              // Search bar
-              TextField(
+            const SizedBox(height: 16),
+            // Search Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
                 controller: searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search drugs, category...',
+                  hintText: 'Search products..',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.clear),
@@ -216,8 +155,7 @@ Penting: Selalu ikuti petunjuk penggunaan pada kemasan obat atau sesuai anjuran 
                     },
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
+                      borderRadius: BorderRadius.circular(25)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20),
                 ),
                 onChanged: (value) {
@@ -226,115 +164,197 @@ Penting: Selalu ikuti petunjuk penggunaan pada kemasan obat atau sesuai anjuran 
                   });
                 },
               ),
-              const SizedBox(height: 40),
+            ),
 
-              // Product grid
-              Expanded(
-                child: ScrollConfiguration(
-                  behavior: const ScrollBehavior().copyWith(overscroll: false),
-                  child: filteredProducts.isEmpty
-                      ? const Center(
-                          child: Text('No products found'),
-                        )
-                      : GridView.builder(
-                          itemCount: filteredProducts.length,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 16,
-                            crossAxisSpacing: 16,
-                            childAspectRatio: 0.75,
-                          ),
-                          itemBuilder: (context, index) {
-                            final product = filteredProducts[index];
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProductDetailScreen(
-                                      product: product,
-                                      onAddToCart: () {
-                                        addToCart(product);
-                                        Navigator.pop(context);
-                                      },
-                                      cartItems: cartItems,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  color: const Color(0xffe8f3f1),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    AspectRatio(
-                                      aspectRatio: 1.2,
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                                top: Radius.circular(12)),
-                                        child: Image.asset(product.image,
-                                            fit: BoxFit.cover),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        product.name,
-                                        style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500),
-                                        maxLines: 2,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8.0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            'Rp ${product.price.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')},00',
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          GestureDetector(
-                                            onTap: () {
-                                              addToCart(product);
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                      "Product has been added to cart successfully."),
-                                                  duration:
-                                                      Duration(seconds: 1),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
-                                              );
-                                            },
-                                            child: const Icon(
-                                                Icons.add_circle_outline,
-                                                color: Colors.teal),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+            const SizedBox(height: 40),
+
+            // Product Grid from Firestore with filtering
+            Expanded(
+              child: StreamBuilder<List<ProductModel>>(
+                stream: getMedicines(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Terjadi kesalahan'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                        child: Text('Tidak ada produk tersedia'));
+                  }
+
+                  // Filter products based on search query
+                  final filteredProducts = snapshot.data!
+                      .where((product) => product.nameProduct
+                          .toLowerCase()
+                          .contains(searchQuery.toLowerCase()))
+                      .toList();
+
+                  if (filteredProducts.isEmpty) {
+                    return const Center(child: Text('Produk tidak ditemukan'));
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: GridView.builder(
+                      key: const PageStorageKey<String>('productGrid'),
+                      itemCount: filteredProducts.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.7,
+                        crossAxisSpacing: 25,
+                        mainAxisSpacing: 30,
+                      ),
+                      itemBuilder: (context, index) {
+                        final product = filteredProducts[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProductDetailScreen(
+                                  product: product,
+                                  onAddToCart: () {
+                                    addToCart(product);
+                                    Navigator.pop(context);
+                                  },
+                                  cartItems: cartItems,
                                 ),
                               ),
                             );
                           },
-                        ),
-                ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xffe8f3f1),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(16)),
+                                      child: Container(
+                                        height: 140, // Tinggi gambar diperbesar
+                                        width: double.infinity,
+                                        color: const Color(0xFFF9F9F9),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(0),
+                                          child: Image.network(
+                                            product.imageUrl,
+                                            fit: BoxFit.fitWidth,
+                                            loadingBuilder: (context, child,
+                                                loadingProgress) {
+                                              if (loadingProgress == null)
+                                                return child;
+                                              return const Center(
+                                                  child:
+                                                      CircularProgressIndicator());
+                                            },
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return const Icon(
+                                                  Icons.broken_image);
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          addToCart(product);
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  "Product has been added to cart successfully."),
+                                              duration: Duration(seconds: 1),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          width: 28,
+                                          height: 28,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF00B4A6),
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.1),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(Icons.add,
+                                              color: Colors.white, size: 16),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(12, 12, 12, 15),
+                                  child: Text(
+                                    product.nameProduct,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                      height: 1.3,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(12, 0, 12, 5),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.credit_card,
+                                          size: 16, color: Colors.black),
+                                      const SizedBox(width: 7),
+                                      Text(
+                                        'Rp ${product.price.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')},00',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 14,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

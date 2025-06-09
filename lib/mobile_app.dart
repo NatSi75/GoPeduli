@@ -11,10 +11,8 @@ class MobileApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'GoPeduli',
       theme: ThemeData(
+        fontFamily: 'Inter', // ini yang bikin semua Text otomatis pakai Inter
         useMaterial3: true,
-        textTheme: GoogleFonts.interTextTheme(
-          Theme.of(context).textTheme,
-        ),
       ),
       home: const SplashScreen(),
     );

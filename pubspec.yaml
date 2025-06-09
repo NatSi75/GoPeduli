@@ -49,12 +49,14 @@ dependencies:
   flutter_dropzone: ^4.2.1
   universal_html: ^2.2.4
   qr_flutter: ^4.0.0
-  uuid: ^4.0.0
   google_fonts: ^6.1.0
   web: ^1.1.1
   file_picker: ^10.1.9
   image_picker_for_web: ^3.0.6
   multi_select_flutter: ^4.1.3
+  http: ^1.1.0
+  webview_flutter: ^4.0.7
+  uuid: ^4.3.0
 
 dev_dependencies:
   flutter_test:
@@ -104,9 +106,23 @@ flutter:
         - asset: fonts/poppins.semiBold.ttf
         - asset: fonts/poppins.bold.ttf
           weight: 700
-  #
+
+    - family: Inter
+      fonts:
+        - asset: fonts/Inter_18pt-Bold.ttf
+          weight: 700
+        - asset: fonts/Inter_18pt-ExtraBold.ttf
+          weight: 800
+        - asset: fonts/Inter_18pt-Medium.ttf
+          weight: 500
+        - asset: fonts/Inter_18pt-Regular.ttf
+          weight: 400
+        - asset: fonts/Inter_18pt-SemiBold.ttf
+          weight: 600
+        - asset: fonts/Inter_18pt-Thin.ttf
+          weight: 100
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
   assets:
     - assets/images/
-
