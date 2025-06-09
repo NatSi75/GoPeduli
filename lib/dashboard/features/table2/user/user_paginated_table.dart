@@ -25,8 +25,8 @@ class GoPeduliPaginatedTableUser extends StatelessWidget {
           child: Theme(
             //Use to set the Backend color
             data: Theme.of(context).copyWith(
-                cardTheme:
-                    const CardTheme(color: GoPeduliColors.white, elevation: 0)),
+                cardTheme: const CardThemeData(
+                    color: GoPeduliColors.white, elevation: 0)),
             child: PaginatedDataTable2(
               isVerticalScrollBarVisible: true,
               columnSpacing: 12,
