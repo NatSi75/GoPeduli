@@ -46,9 +46,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             return [
               SliverAppBar(
                 pinned: true,
-                floating: false,
-                snap: false,
-                elevation: 0,
                 backgroundColor: Colors.white,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -105,20 +102,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ];
           },
           body: ListView(
-            physics: const ClampingScrollPhysics(),
             padding: EdgeInsets.zero,
             children: [
               // Gambar produk
               SizedBox(
                 width: double.infinity,
                 height: 250,
-                child: Image.asset(
-                  widget.product.image,
-                  fit: BoxFit.cover,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: const Color.fromARGB(19, 0, 0, 0), // warna border
+                      width: 2, // ketebalan border
+                    ),
+                  ),
+                  child: ClipRRect(
+                    child: Image.network(
+                      widget.product.imageUrl,
+                      fit: BoxFit.fitWidth,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(child: Icon(Icons.broken_image));
+                      },
+                    ),
+                  ),
                 ),
               ),
 
-              // Container harga + tipe
+              // Harga + tipe (category)
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -129,7 +138,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         const Icon(Icons.payment, size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          'Rp ${widget.product.price.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')},00',
+                          'Rp ${widget.product.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')},00',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -139,7 +148,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     const SizedBox(height: 15),
                     Wrap(
-                      spacing: 25,
+                      spacing: 10,
                       runSpacing: 8,
                       children: widget.product.types.map((type) {
                         return Container(
@@ -163,7 +172,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
 
-              // Nama dan stock
+              // Nama dan stok
               Container(
                 width: double.infinity,
                 color: const Color.fromARGB(255, 251, 250, 250),
@@ -175,7 +184,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.product.name.toUpperCase(),
+                          widget.product.nameProduct.toUpperCase(),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -209,8 +218,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 15),
-              // Deskripsi produk dengan read more
+
+              // Deskripsi produk
               Container(
                 width: double.infinity,
                 color: const Color(0xffe0f2f1),
@@ -225,7 +236,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 20),
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final textSpan = TextSpan(
@@ -240,7 +251,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         );
 
                         textPainter.layout(maxWidth: constraints.maxWidth);
-
                         final isTextLong = textPainter.didExceedMaxLines;
                         final showReadMore = isTextLong && !_isExpanded;
 
@@ -253,7 +263,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               maxLines: _isExpanded ? null : 7,
                               overflow: TextOverflow.fade,
                             ),
-                            const SizedBox(height: 5),
+                            const SizedBox(height: 20),
                             if (showReadMore || _isExpanded)
                               GestureDetector(
                                 onTap: () {
@@ -276,7 +286,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ],
                 ),
               ),
-              // Bottom padding to account for bottom navigation bar
+
               const SizedBox(height: 20),
             ],
           ),
@@ -284,15 +294,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-        color: const Color.fromARGB(
-            255, 195, 220, 218), // warna latar mirip dari gambar
+        color: const Color.fromARGB(255, 195, 220, 218),
         child: Row(
           children: [
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () {
                   widget.onAddToCart();
-
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content:
@@ -318,7 +326,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             const SizedBox(width: 30),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  // Implementasi Buy Now nanti
+                },
                 icon: const Icon(Icons.shopping_bag,
                     size: 18, color: Colors.black),
                 label: const Text("Buy Now",
@@ -340,12 +350,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 }
 
-// Custom ScrollBehavior to disable overscroll glow and stretch effect
+// Custom ScrollBehavior
 class MyCustomScrollBehavior extends ScrollBehavior {
   @override
   Widget buildOverscrollIndicator(
       BuildContext context, Widget child, ScrollableDetails details) {
-    // Return child langsung tanpa overscroll indicator
     return child;
   }
 }
