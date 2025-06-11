@@ -63,7 +63,7 @@ class DashboardTabletScreen extends StatelessWidget {
                     const SizedBox(width: GoPeduliSize.paddingHeightSmall),
                     Expanded(
                       child: GoPeduliDashboardCard(
-                          title: 'Users',
+                          title: 'Total Users',
                           subTitle: controller.totalUsers.value
                               .toString(), // Display total users
                           stats: controller.usersComparisonPercentage.value,

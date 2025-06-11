@@ -176,7 +176,13 @@ class MyDataDoctor extends DataTableSource {
 
     return DataRow2(cells: [
       DataCell(
+        Image.network(doctor.profilePicture, width: 200, height: 200),
+      ),
+      DataCell(
         Text(doctor.name),
+      ),
+      DataCell(
+        Text(doctor.hospital),
       ),
       DataCell(
         Text(doctor.email),

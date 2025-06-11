@@ -36,6 +36,8 @@ class CreateCourierController extends GetxController {
 
       final newCourier = UserModel(
         id: AuthenticationRepository.instance.authUser!.uid,
+        profilePicture: '',
+        hospital: '',
         name: name.text.trim(),
         email: email.text.trim(),
         role: AppRole.courier,

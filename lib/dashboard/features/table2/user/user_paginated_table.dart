@@ -82,6 +82,11 @@ class GoPeduliPaginatedTableUser extends StatelessWidget {
                   onSort: (columnIndex, ascending) =>
                       controller.sortByName(columnIndex, ascending),
                 ),
+                const DataColumn2(
+                    label: Text(
+                  'Gender',
+                  style: TextStyle(color: GoPeduliColors.white),
+                )),
                 DataColumn2(
                   label: const Text(
                     'Email',
@@ -92,6 +97,9 @@ class GoPeduliPaginatedTableUser extends StatelessWidget {
                 ),
                 const DataColumn2(
                     label: Text('Phone Number',
+                        style: TextStyle(color: GoPeduliColors.white))),
+                const DataColumn2(
+                    label: Text('Address',
                         style: TextStyle(color: GoPeduliColors.white))),
                 DataColumn2(
                   label: const Text('Create Date',

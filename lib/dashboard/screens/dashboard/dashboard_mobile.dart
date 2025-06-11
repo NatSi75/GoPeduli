@@ -48,7 +48,7 @@ class DashboardMobileScreen extends StatelessWidget {
                           comparisonText: 'Compared to previous month'),
                       const SizedBox(height: GoPeduliSize.paddingHeightSmall),
                       GoPeduliDashboardCard(
-                          title: 'Users',
+                          title: 'Total Users',
                           subTitle: controller.totalUsers.value.toString(),
                           stats: controller.usersComparisonPercentage.value,
                           comparisonText: 'Compared to previous month'),

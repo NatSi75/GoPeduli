@@ -78,6 +78,8 @@ class LoginController extends GetxController {
       await userRepository.createUser(
         UserModel(
           id: AuthenticationRepository.instance.authUser!.uid,
+          profilePicture: '',
+          hospital: '',
           name: 'admin',
           email: 'admin@gmail.com',
           role: AppRole.admin,
