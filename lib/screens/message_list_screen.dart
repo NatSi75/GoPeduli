@@ -147,7 +147,7 @@ class _MessageListScreenState extends State<MessageListScreen> {
               return const SizedBox.shrink();
             }
 
-            final photoUrl = userData['profilePicture'] ?? '';
+            final photoUrl = userData['ProfilePicture'] ?? '';
             final lastMessage = chat['lastMessage'] ?? '';
             final lastMessageTimestamp = chat['createdAt'] as Timestamp?;
             final data = chat.data() as Map<String, dynamic>?;

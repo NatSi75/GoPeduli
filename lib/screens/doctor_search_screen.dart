@@ -79,9 +79,9 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
 
                     final data = userDoc.data() as Map<String, dynamic>;
                     final name = data['Name'] ?? 'No Name';
-                    final email = data['Email'] ?? 'No Email';
+                    final email = data['Hospital'] ?? 'Hospital Unknown';
                     final otherUserId = userDoc.id;
-                    final photoUrl = data['profilePicture'] ?? '';
+                    final photoUrl = data['ProfilePicture'] ?? '';
 
                     return ListTile(
                       leading: CircleAvatar(
