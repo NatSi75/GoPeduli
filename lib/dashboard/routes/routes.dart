@@ -11,6 +11,8 @@ class GoPeduliRoutes {
   static const createMedicine = '/create-medicine';
   static const editMedicine = '/edit-medicine';
 
+  static const orders = '/orders';
+
   static const doctors = '/doctors';
   static const createDoctor = '/create-doctor';
 
@@ -26,9 +28,10 @@ class GoPeduliRoutes {
   static List sidebarMenuItems = [
     dashboard,
     articles,
+    medicines,
+    orders,
     doctors,
     authors,
-    medicines,
     users,
     couriers
   ];

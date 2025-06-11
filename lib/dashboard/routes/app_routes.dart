@@ -19,6 +19,7 @@ import 'package:gopeduli/dashboard/screens/articles/edit_article_screen.dart';
 import 'package:gopeduli/dashboard/screens/medicines/medicines_screen.dart';
 import 'package:gopeduli/dashboard/screens/medicines/create_medicine_screen.dart';
 import 'package:gopeduli/dashboard/screens/medicines/edit_medicine_screen.dart';
+import 'package:gopeduli/dashboard/screens/orders/orders_screen.dart';
 import 'package:gopeduli/dashboard/screens/users_screen.dart';
 
 class GoPeduliAppRoutes {
@@ -60,6 +61,34 @@ class GoPeduliAppRoutes {
       ],
     ),
     GetPage(
+      name: GoPeduliRoutes.medicines,
+      page: () => const MedicinesScreen(),
+      middlewares: [
+        GoPeduliRouteMiddleware(),
+      ],
+    ),
+    GetPage(
+      name: GoPeduliRoutes.createMedicine,
+      page: () => const CreateMedicineScreen(),
+      middlewares: [
+        GoPeduliRouteMiddleware(),
+      ],
+    ),
+    GetPage(
+      name: GoPeduliRoutes.editMedicine,
+      page: () => const EditMedicineScreen(),
+      middlewares: [
+        GoPeduliRouteMiddleware(),
+      ],
+    ),
+    GetPage(
+      name: GoPeduliRoutes.orders,
+      page: () => const OrdersScreen(),
+      middlewares: [
+        GoPeduliRouteMiddleware(),
+      ],
+    ),
+    GetPage(
       name: GoPeduliRoutes.doctors,
       page: () => const DoctorsScreen(),
       middlewares: [
@@ -90,27 +119,6 @@ class GoPeduliAppRoutes {
     GetPage(
       name: GoPeduliRoutes.editAuthor,
       page: () => const EditAuthorScreen(),
-      middlewares: [
-        GoPeduliRouteMiddleware(),
-      ],
-    ),
-    GetPage(
-      name: GoPeduliRoutes.medicines,
-      page: () => const MedicinesScreen(),
-      middlewares: [
-        GoPeduliRouteMiddleware(),
-      ],
-    ),
-    GetPage(
-      name: GoPeduliRoutes.createMedicine,
-      page: () => const CreateMedicineScreen(),
-      middlewares: [
-        GoPeduliRouteMiddleware(),
-      ],
-    ),
-    GetPage(
-      name: GoPeduliRoutes.editMedicine,
-      page: () => const EditMedicineScreen(),
       middlewares: [
         GoPeduliRouteMiddleware(),
       ],

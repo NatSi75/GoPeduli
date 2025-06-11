@@ -6,6 +6,7 @@ import 'package:gopeduli/dashboard/features/popup/loaders.dart';
 import 'package:gopeduli/dashboard/repository/article_model.dart';
 import 'package:gopeduli/dashboard/repository/article_repository.dart';
 import 'package:gopeduli/dashboard/repository/author_model.dart';
+import 'package:gopeduli/dashboard/repository/user_model.dart';
 import 'package:gopeduli/dashboard/routes/routes.dart';
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
@@ -17,17 +18,19 @@ class EditArticleController extends GetxController {
   static EditArticleController get instance => Get.find();
 
   List<AuthorModel> authors = <AuthorModel>[].obs;
+  List<UserModel> doctors = <UserModel>[].obs;
   RxString imageURL = ''.obs;
   String previousImageUrl = '';
   final title = TextEditingController();
   final body = TextEditingController();
   RxnString author = RxnString();
-  final verifiedBy = TextEditingController();
+  RxnString verifiedBy = RxnString();
   final formKey = GlobalKey<FormState>();
 
   @override
   void onInit() {
     fetchAuthors();
+    fetchDoctors();
     super.onInit();
   }
 
@@ -40,12 +43,21 @@ class EditArticleController extends GetxController {
     }
   }
 
+  void fetchDoctors() async {
+    try {
+      final result = await ArticleRepository.instance.getAllDoctors();
+      doctors.assignAll(result);
+    } catch (e) {
+      GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
+    }
+  }
+
   // Init Data
   void init(ArticleModel article) {
     title.text = article.title;
     body.text = article.body;
     author.value = article.author;
-    verifiedBy.text = article.verifiedBy;
+    verifiedBy.value = article.verifiedBy;
     imageURL.value = article.image;
     previousImageUrl = article.image;
   }
@@ -54,7 +66,7 @@ class EditArticleController extends GetxController {
     title.clear();
     body.clear();
     author.value = null;
-    verifiedBy.clear();
+    verifiedBy.value = null;
     imageURL.value = '';
     previousImageUrl = '';
     imageDataNotifier.value = null;
@@ -106,7 +118,7 @@ class EditArticleController extends GetxController {
       article.title = title.text.trim();
       article.body = body.text.trim();
       article.author = author.value ?? '';
-      article.verifiedBy = verifiedBy.text.trim();
+      article.verifiedBy = verifiedBy.value ?? '';
       article.image = imageURL.value;
       article.createdAt = DateTime.now();
 
