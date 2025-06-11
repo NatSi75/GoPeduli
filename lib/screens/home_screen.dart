@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:gopeduli/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -91,6 +92,33 @@ class _HomeScreenState extends State<HomeScreen> {
       return "Good Evening,";
     }
   }
+  
+  // Helper function to check doctor availability
+  bool isDoctorAvailableToday(String? schedule) {
+    if (schedule == null || schedule.isEmpty) {
+      return false;
+    }
+    const Map<int, String> weekdayMap = {
+      1: 'senin',
+      2: 'selasa',
+      3: 'rabu',
+      4: 'kamis',
+      5: 'jumat',
+      6: 'sabtu',
+      7: 'minggu',
+    };
+    final String today = weekdayMap[DateTime.now().weekday]!;
+    final List<String> scheduledDays =
+        schedule.toLowerCase().split(',').map((d) => d.trim()).toList();
+    return scheduledDays.contains(today);
+  }
+  
+  // Helper function to generate a chat ID
+  String generateChatId(String id1, String id2) {
+    final sorted = [id1, id2]..sort();
+    return '${sorted[0]}_${sorted[1]}';
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +144,8 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildUserHeader(),
               const SizedBox(height: 20),
               _searchArticles(),
+              const SizedBox(height: 20),
+              _buildAvailableDoctorsSection(),
               const SizedBox(height: 20),
               _buildLatestArticlesSection(),
             ],
@@ -185,13 +215,143 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildAvailableDoctorsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Available Doctors",
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 120, // Give the horizontal list a fixed height
+          child: FutureBuilder<QuerySnapshot>(
+            future: _firestore
+                .collection('users')
+                .where('Role', isEqualTo: 'doctor')
+                .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.hasError) {
+                return const Center(child: Text('Could not load doctors.'));
+              }
+
+            // Safely check if 'Schedule' field exists before reading it.
+              final availableDoctors = snapshot.data!.docs.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                // Check if the key exists. If not, the doctor is not available.
+                if (data.containsKey('Schedule')) {
+                  return isDoctorAvailableToday(data['Schedule'] as String?);
+                }
+                return false;
+              }).toList();
+              
+              if (availableDoctors.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No doctors are available right now.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                );
+              }
+
+              return ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: availableDoctors.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final doctorDoc = availableDoctors[index];
+                  final data = doctorDoc.data() as Map<String, dynamic>;
+                  return _buildDoctorCard(doctorDoc.id, data);
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDoctorCard(String doctorId, Map<String, dynamic> data) {
+    final name = data['Name'] ?? 'No Name';
+    final photoUrl = data['ProfilePicture'] ?? '';
+    final currentUser = _auth.currentUser;
+
+    return GestureDetector(
+      onTap: () async {
+        if (currentUser == null) return;
+        final chatId = generateChatId(currentUser.uid, doctorId);
+        final chatDoc = _firestore.collection('chats').doc(chatId);
+        final chatSnapshot = await chatDoc.get();
+
+        if (!chatSnapshot.exists) {
+          await chatDoc.set({
+            'members': [currentUser.uid, doctorId],
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastMessage': '',
+          });
+        }
+        
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(
+                chatId: chatId,
+                receiverUserName: name,
+                receiverUserImage: photoUrl,
+              ),
+            ),
+          );
+        }
+      },
+      child: SizedBox(
+        width: 80,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 35,
+              backgroundColor: Colors.teal,
+              child: CircleAvatar(
+                radius: 32,
+                backgroundImage: photoUrl.isNotEmpty
+                    ? NetworkImage(photoUrl)
+                    : const AssetImage('assets/images/default_person.png')
+                        as ImageProvider,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
   Widget _buildLatestArticlesSection() {
     String sectionTitle = _currentViewMode == _ArticleViewMode.latest
         ? "Latest Articles"
         : "Trending Articles";
 
-    // Hitung total halaman berdasarkan filteredArticles, bukan articles
-    // Ini akan dihitung lagi di _buildArticleList, tapi perlu di sini untuk pagination control.
     final totalFilteredItems = searchQuery.isEmpty
         ? articles.length
         : articles.where((article) {
@@ -268,7 +428,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.arrow_forward_ios, size: 18),
-                  // Nonaktifkan jika di halaman terakhir atau tidak ada item
                   onPressed: _currentPage < totalPages - 1 && totalPages > 0
                       ? () {
                           setState(() {
@@ -310,7 +469,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Filter artikel berdasarkan searchQuery (tidak case-sensitive)
     final filteredArticles = searchQuery.isEmpty
         ? articles
         : articles.where((article) {
@@ -320,24 +478,18 @@ class _HomeScreenState extends State<HomeScreen> {
             return title.contains(query) || body.contains(query);
           }).toList();
 
-    // --- BAGIAN PAGINATION YANG DIPERBAIKI SECARA ROBUST ---
     final int totalItems = filteredArticles.length;
     final int totalPages = (totalItems / _articlesPerPage).ceil();
 
-    // Menyesuaikan _currentPage agar tidak melebihi batas totalPages baru
     if (totalItems == 0) {
-      _currentPage = 0; // Jika tidak ada item, selalu di halaman 0
+      _currentPage = 0;
     } else if (_currentPage >= totalPages) {
-      // Jika _currentPage terlalu tinggi untuk filteredArticles yang baru,
-      // reset ke halaman terakhir yang valid.
       _currentPage = totalPages - 1;
     }
-    // _currentPage secara implisit >= 0 karena diinisialisasi sebagai 0 dan hanya bertambah/berkurang
 
     final int startIndex = _currentPage * _articlesPerPage;
     final int endIndex = (startIndex + _articlesPerPage).clamp(0, totalItems);
 
-    // Final check untuk kondisi tidak valid sebelum sublist
     if (startIndex < 0 || startIndex >= totalItems && totalItems > 0) {
       return Center(
         child: Text(
@@ -351,7 +503,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Jika tidak ada artikel setelah filter/paginasi (misal totalItems = 0)
     if (totalItems == 0) {
       return Center(
         child: Text(
@@ -364,7 +515,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    // --- AKHIR BAGIAN PAGINATION YANG DIPERBAIKI SECARA ROBUST ---
 
     final paginatedArticles = filteredArticles.sublist(startIndex, endIndex);
 
@@ -408,7 +558,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     searchController.clear();
                     setState(() {
                       searchQuery = '';
-                      _currentPage = 0; // Reset halaman saat clear search
+                      _currentPage = 0;
                     });
                   },
                 )
@@ -453,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onChanged: (value) {
           setState(() {
             searchQuery = value;
-            _currentPage = 0; // Reset halaman saat mengetik search
+            _currentPage = 0;
           });
         },
       ),
