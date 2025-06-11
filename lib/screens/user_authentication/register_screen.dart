@@ -22,61 +22,71 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final emailController = TextEditingController();
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
+  final addressController = TextEditingController(); 
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+
+  String? _selectedGender; 
+  final List<String> _genders = ['Male', 'Female']; 
 
   bool isPasswordVisible = false;
   bool agreeToTerms = false;
   bool isLoading = false;
 
-Future<void> _register() async {
-  if (!_formKey.currentState!.validate() || !agreeToTerms) return;
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate() || !agreeToTerms) return;
+    if (_selectedGender == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select your gender')),
+      );
+      return;
+    }
 
-  setState(() => isLoading = true);
+    setState(() => isLoading = true);
 
-  try {
-    // Register user with email + password
-    final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-    );
+    try {
+      // Register user with email + password
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
-    final user = userCredential.user!;
-    
-    // Send email verification
-    await user.sendEmailVerification();
+      final user = userCredential.user!;
 
-    // Save additional info to Firestore
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-      'Email': emailController.text.trim(),
-      'Name': nameController.text.trim(),
-      'Phone': phoneController.text.trim(),
-      'CreatedAt': FieldValue.serverTimestamp(),
-      'UpdatedAt': null,
-      'ProfilePicture': '',
-      'Role': 'member',
-    });
+      // Send email verification
+      await user.sendEmailVerification();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Verification email sent. Please check your inbox.')),
-    );
+      // Save additional info to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'Email': emailController.text.trim(),
+        'Name': nameController.text.trim(),
+        'Gender': _selectedGender, // Save gender
+        'Phone': phoneController.text.trim(),
+        'Address': addressController.text.trim(), // Save address
+        'CreatedAt': FieldValue.serverTimestamp(),
+        'UpdatedAt': null,
+        'ProfilePicture': '',
+        'Role': 'member',
+      });
 
-    // Redirect to email verification screen
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => VerifyEmailScreen()),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Verification email sent. Please check your inbox.')),
+      );
 
-  } on FirebaseAuthException catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.message ?? 'Registration failed')),
-    );
-  } finally {
-    setState(() => isLoading = false);
+      // Redirect to email verification screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => VerifyEmailScreen()),
+      );
+
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Registration failed')),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
-}
-
-
 
   Widget _buildTextField({
     required String hint,
@@ -154,12 +164,51 @@ Future<void> _register() async {
                     validator: (value) => value == null || value.isEmpty ? 'Name is required' : null,
                   ),
                   SizedBox(height: 24),
+                  // Gender Dropdown
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.wc),
+                      hintText: 'Select your gender',
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                    ),
+                    value: _selectedGender,
+                    items: _genders.map((String gender) {
+                      return DropdownMenuItem<String>(
+                        value: gender,
+                        child: Text(gender),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedGender = newValue;
+                      });
+                    },
+                    validator: (value) => value == null ? 'Gender is required' : null,
+                  ),
+                  SizedBox(height: 24),
                   _buildTextField(
                     hint: 'Enter your phone number',
                     controller: phoneController,
                     icon: Icons.phone,
                     validator: (value) => value == null || value.isEmpty ? 'Phone number is required' : null,
                     keyboardType: TextInputType.phone,
+                  ),
+                  SizedBox(height: 24),
+                  // Address Text Field
+                  _buildTextField(
+                    hint: 'Enter your address (Optional)',
+                    controller: addressController,
+                    icon: Icons.home,
+                    validator: (value) => null,
                   ),
                   SizedBox(height: 24),
                   _buildTextField(

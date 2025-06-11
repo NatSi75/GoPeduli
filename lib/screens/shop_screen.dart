@@ -154,9 +154,20 @@ class _ShopScreenState extends State<ShopScreen>
                       });
                     },
                   ),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(25)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  
+                  // --- PERUBAHAN DI SINI ---
+                  // Mendefinisikan border saat tidak fokus
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                  ),
+
+                  // Mendefinisikan border saat fokus menjadi TEAL
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(color: Colors.teal, width: 2.0),
+                  ),
                 ),
                 onChanged: (value) {
                   setState(() {
