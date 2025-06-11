@@ -8,6 +8,12 @@ class GoPeduliFormatter {
     return '$onlyDate at $onlyTime';
   }
 
+  static String formatDateWeekly(DateTime? date) {
+    if (date == null) return '';
+    // Format tanggal menjadi YYYY-MM-DD
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
   static String formatCurrency(double amount) {
     return NumberFormat.currency(
       locale: 'id_ID',

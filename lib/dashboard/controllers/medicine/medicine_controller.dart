@@ -9,6 +9,7 @@ import 'package:gopeduli/dashboard/repository/medicine_model.dart';
 import 'package:gopeduli/dashboard/repository/medicine_repository.dart';
 import 'package:gopeduli/dashboard/routes/routes.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:intl/intl.dart';
 
 class MedicineController extends GetxController {
   static MedicineController get instance => Get.find();
@@ -238,6 +239,11 @@ class MedicineController extends GetxController {
 class MyDataMedicine extends DataTableSource {
   final controller = MedicineController.instance;
 
+  String formatCurrency(int amount) {
+    return NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0)
+        .format(amount);
+  }
+
   @override
   DataRow? getRow(int index) {
     final medicine = controller.filteredMedicines[index];
@@ -269,7 +275,7 @@ class MyDataMedicine extends DataTableSource {
             Text(medicine.classMedicine),
           ),
           DataCell(
-            Text(medicine.price),
+            Text(formatCurrency(int.parse(medicine.price))),
           ),
           DataCell(
             Text(medicine.stock),

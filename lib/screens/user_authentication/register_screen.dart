@@ -24,8 +24,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final emailController = TextEditingController();
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
+  final addressController = TextEditingController(); 
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+
+  String? _selectedGender; 
+  final List<String> _genders = ['Male', 'Female']; 
 
   bool isPasswordVisible = false;
   bool agreeToTerms = false;
@@ -33,13 +37,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate() || !agreeToTerms) return;
+    if (_selectedGender == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select your gender')),
+      );
+      return;
+    }
 
     setState(() => isLoading = true);
 
     try {
       // Register user with email + password
-      final userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
@@ -53,7 +62,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'Email': emailController.text.trim(),
         'Name': nameController.text.trim(),
+        'Gender': _selectedGender, // Save gender
         'Phone': phoneController.text.trim(),
+        'Address': addressController.text.trim(), // Save address
         'CreatedAt': FieldValue.serverTimestamp(),
         'UpdatedAt': null,
         'ProfilePicture': '',
@@ -61,8 +72,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Verification email sent. Please check your inbox.')),
+        SnackBar(content: Text('Verification email sent. Please check your inbox.')),
       );
 
       // Redirect to email verification screen
@@ -161,7 +171,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ? 'Name is required'
                         : null,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
+                  // Gender Dropdown
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.wc),
+                      hintText: 'Select your gender',
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                    ),
+                    value: _selectedGender,
+                    items: _genders.map((String gender) {
+                      return DropdownMenuItem<String>(
+                        value: gender,
+                        child: Text(gender),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedGender = newValue;
+                      });
+                    },
+                    validator: (value) => value == null ? 'Gender is required' : null,
+                  ),
+                  SizedBox(height: 24),
                   _buildTextField(
                     hint: 'Enter your phone number',
                     controller: phoneController,
@@ -171,7 +212,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         : null,
                     keyboardType: TextInputType.phone,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
+                  // Address Text Field
+                  _buildTextField(
+                    hint: 'Enter your address (Optional)',
+                    controller: addressController,
+                    icon: Icons.home,
+                    validator: (value) => null,
+                  ),
+                  SizedBox(height: 24),
                   _buildTextField(
                     hint: 'Enter your password',
                     controller: passwordController,
