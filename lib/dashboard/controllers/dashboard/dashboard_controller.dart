@@ -23,16 +23,15 @@ class DashboardController extends GetxController {
   final RxDouble monthlySalesTotal = 0.0.obs;
   final RxDouble monthlyAverageOrderValue = 0.0.obs;
   final RxInt monthlyTotalOrders = 0.obs;
-  final RxInt totalUsers = 0.obs; // Overall total users
-  final RxInt monthlyNewUsers = 0.obs; // New users in the last 30 days
+  final RxInt totalUsers = 0.obs;
+  final RxInt monthlyNewUsers = 0.obs;
 
-  // --- NEW: Previous month metrics ---
   final RxDouble previousMonthlySalesTotal = 0.0.obs;
   final RxDouble previousMonthlyAverageOrderValue = 0.0.obs;
   final RxInt previousMonthlyTotalOrders = 0.obs;
+  final RxInt previousMonthlyTotalUsers = 0.obs;
   final RxInt previousMonthlyNewUsers = 0.obs;
 
-  // --- NEW: Comparison Stats ---
   final RxInt salesComparisonPercentage = 0.obs;
   final Rx<IconData> salesComparisonIcon = Icons.arrow_right_alt.obs;
   final Rx<Color> salesComparisonColor = Colors.grey.obs;
@@ -73,6 +72,11 @@ class DashboardController extends GetxController {
           await orderRepository.getAllOrdersPreviousThirtyDays();
 
       final int fetchedTotalUsers = await userRepository.getTotalUsers();
+      final DateTime now = DateTime.now();
+      final DateTime endOfPreviousMonth = DateTime(now.year, now.month, now.day)
+          .subtract(const Duration(days: 30));
+      final int fetchedPreviousTotalUsers =
+          await userRepository.getTotalUsersAtDate(endOfPreviousMonth);
       final int fetchedMonthlyNewUsers =
           await userRepository.getNewUsersMonthly();
       final int fetchedPreviousMonthlyNewUsers =
@@ -83,13 +87,14 @@ class DashboardController extends GetxController {
       monthlyNewUsers.value = fetchedMonthlyNewUsers;
 
       _calculatePreviousMonthlyMetrics(ordersForPreviousThirtyDays);
+      previousMonthlyTotalUsers.value = fetchedPreviousTotalUsers;
       previousMonthlyNewUsers.value = fetchedPreviousMonthlyNewUsers;
 
       _performComparisons();
 
       _calculateWeeklySales(ordersForSevenDays);
-      _calculateOrderStatusData(ordersForSevenDays);
-      _fetchRecentOrders(ordersForSevenDays);
+      _calculateOrderStatusData(ordersForOneDay);
+      _fetchRecentOrders(ordersForOneDay);
     } catch (e) {
       GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
     }
@@ -97,7 +102,6 @@ class DashboardController extends GetxController {
 
   // Calculate weekly sales
   void _calculateWeeklySales(List<OrderModel> orders) async {
-    // Reset the weekly sales data
     weeklySales.clear();
     weeklySalesDates.clear();
 
@@ -115,7 +119,8 @@ class DashboardController extends GetxController {
     }
 
     for (var order in orders) {
-      if (order.createdAt != null) {
+      if (order.createdAt != null &&
+          order.status.toLowerCase() == 'completed') {
         final orderDateString =
             GoPeduliFormatter.formatDateWeekly(order.createdAt!);
         if (dailySalesMap.containsKey(orderDateString)) {
@@ -150,6 +155,9 @@ class DashboardController extends GetxController {
         case 'processing':
           statusEnum = OrderStatus.proccessing;
           break;
+        case 'ready':
+          statusEnum = OrderStatus.ready;
+          break;
         case 'shipped':
           statusEnum = OrderStatus.shipped;
           break;
@@ -158,6 +166,9 @@ class DashboardController extends GetxController {
           break;
         case 'completed':
           statusEnum = OrderStatus.completed;
+          break;
+        case 'cancelled':
+          statusEnum = OrderStatus.cancelled;
           break;
         default:
           continue;
@@ -184,8 +195,10 @@ class DashboardController extends GetxController {
     int totalOrdersCount = 0;
 
     for (var order in orders) {
-      totalSales += order.total.toDouble();
-      totalOrdersCount++;
+      if (order.status.toLowerCase() == 'completed') {
+        totalSales += order.total.toDouble();
+        totalOrdersCount++;
+      }
     }
 
     monthlySalesTotal.value = totalSales;
@@ -203,8 +216,10 @@ class DashboardController extends GetxController {
     int totalOrdersCount = 0;
 
     for (var order in orders) {
-      totalSales += order.total.toDouble();
-      totalOrdersCount++;
+      if (order.status.toLowerCase() == 'completed') {
+        totalSales += order.total.toDouble();
+        totalOrdersCount++;
+      }
     }
 
     previousMonthlySalesTotal.value = totalSales;
@@ -245,10 +260,10 @@ class DashboardController extends GetxController {
       colorRx: ordersComparisonColor,
     );
 
-    // Users (New users)
+    // Total Users
     _updateComparison(
-      currentValue: monthlyNewUsers.value.toDouble(), // Convert int to double
-      previousValue: previousMonthlyNewUsers.value.toDouble(),
+      currentValue: totalUsers.value.toDouble(),
+      previousValue: previousMonthlyTotalUsers.value.toDouble(),
       percentageRx: usersComparisonPercentage,
       iconRx: usersComparisonIcon,
       colorRx: usersComparisonColor,
@@ -300,12 +315,16 @@ class DashboardController extends GetxController {
         return OrderStatus.pending;
       case 'processing':
         return OrderStatus.proccessing;
+      case 'ready':
+        return OrderStatus.ready;
       case 'shipped':
         return OrderStatus.shipped;
       case 'delivered':
         return OrderStatus.delivered;
       case 'completed':
         return OrderStatus.completed;
+      case 'cancelled':
+        return OrderStatus.cancelled;
       default:
         return OrderStatus.pending; // Default if unknown
     }
@@ -317,14 +336,16 @@ class DashboardController extends GetxController {
         return 'Pending';
       case OrderStatus.proccessing:
         return 'Processing';
+      case OrderStatus.ready:
+        return 'Ready';
       case OrderStatus.shipped:
         return 'Shipped';
       case OrderStatus.delivered:
         return 'Delivered';
       case OrderStatus.completed:
         return 'Completed';
-      default:
-        return 'Unknown Status';
+      case OrderStatus.cancelled:
+        return 'Cancelled';
     }
   }
 

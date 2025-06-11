@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gopeduli/dashboard/controllers/doctor/create_doctor_controller.dart';
@@ -45,6 +47,31 @@ class CreateDoctorForm extends StatelessWidget {
                 ),
                 label: Text(
                   'Name',
+                  style: TextStyle(fontSize: GoPeduliSize.fontSizeBody),
+                ),
+                labelStyle: TextStyle(
+                    color: Colors.black, fontSize: GoPeduliSize.fontSizeBody),
+              ),
+            ),
+            const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+            TextFormField(
+              controller: controller.hospital,
+              validator: (value) =>
+                  GoPeduliValidator.validateEmptyText('Hospital', value),
+              cursorColor: GoPeduliColors.primary,
+              style: const TextStyle(
+                  fontSize: GoPeduliSize.fontSizeBody, color: Colors.black),
+              decoration: const InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderSide:
+                      BorderSide(color: GoPeduliColors.primary, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide:
+                      BorderSide(color: GoPeduliColors.primary, width: 1),
+                ),
+                label: Text(
+                  'Hospital',
                   style: TextStyle(fontSize: GoPeduliSize.fontSizeBody),
                 ),
                 labelStyle: TextStyle(
@@ -113,6 +140,37 @@ class CreateDoctorForm extends StatelessWidget {
                         fontSize: GoPeduliSize.fontSizeBody),
                     label: const Text('Password',
                         style: TextStyle(fontSize: GoPeduliSize.fontSizeBody))),
+              ),
+            ),
+            const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+            Center(
+              child: ValueListenableBuilder<Uint8List?>(
+                valueListenable: imageDataNotifier,
+                builder: (context, imageData, child) {
+                  if (imageData == null) {
+                    return const Text('No Image Yet',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: GoPeduliSize.fontSizeBody));
+                  }
+                  return Image.memory(imageData,
+                      height: 200, fit: BoxFit.cover);
+                },
+              ),
+            ),
+            const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+            Center(
+              child: ElevatedButton(
+                onPressed: controller.pickImage,
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: GoPeduliColors.primary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            GoPeduliSize.borderRadiusSmall))),
+                child: const Text('Select Image',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: GoPeduliSize.fontSizeBody)),
               ),
             ),
             const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),

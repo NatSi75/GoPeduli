@@ -54,7 +54,7 @@ class DashboardDesktopScreen extends StatelessWidget {
                     const SizedBox(width: GoPeduliSize.paddingHeightSmall),
                     Expanded(
                       child: GoPeduliDashboardCard(
-                          title: 'Users',
+                          title: 'Total Users',
                           subTitle: controller.totalUsers.value.toString(),
                           stats: controller.usersComparisonPercentage.value,
                           comparisonText: 'Compared to previous month'),

@@ -58,7 +58,7 @@ class UserRepository extends GetxController {
     try {
       final DateTime now = DateTime.now();
       final DateTime thirtyDaysAgo = DateTime(now.year, now.month, now.day)
-          .subtract(const Duration(days: 30));
+          .subtract(const Duration(days: 29));
 
       final querySnapshot = await _db
           .collection("users")
@@ -69,6 +69,26 @@ class UserRepository extends GetxController {
           .where('createdAt',
               isGreaterThanOrEqualTo: Timestamp.fromDate(
                   thirtyDaysAgo)) // Assuming a 'createdAt' field
+          .get();
+
+      return querySnapshot.docs.length;
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
+    }
+  }
+
+  Future<int> getTotalUsersAtDate(DateTime endDate) async {
+    try {
+      // Query users where 'createdAt' is less than or equal to the end date
+      final querySnapshot = await _db
+          .collection("users")
+          .where(
+            'Role',
+            isEqualTo: 'member',
+          )
+          .where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
           .get();
 
       return querySnapshot.docs.length;

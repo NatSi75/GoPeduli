@@ -11,15 +11,19 @@ class GoPeduliHelperFunction {
 
   static Color getOrderStatusColor(OrderStatus value) {
     if (OrderStatus.pending == value) {
-      return Colors.blue;
-    } else if (OrderStatus.proccessing == value) {
       return Colors.orange;
+    } else if (OrderStatus.proccessing == value) {
+      return Colors.blue;
+    } else if (OrderStatus.ready == value) {
+      return Colors.lightBlueAccent;
     } else if (OrderStatus.shipped == value) {
       return Colors.purple;
     } else if (OrderStatus.delivered == value) {
-      return Colors.lightGreen;
-    } else if (OrderStatus.completed == value) {
       return Colors.green;
+    } else if (OrderStatus.completed == value) {
+      return Colors.teal;
+    } else if (OrderStatus.completed == value) {
+      return Colors.red;
     } else {
       return Colors.grey; // Default color for unknown status
     }

@@ -109,6 +109,7 @@ class CreateArticleController extends GetxController {
           body: body.text.trim(),
           author: author.value ?? '',
           verifiedBy: verifiedBy.value ?? '',
+          views: 0,
           createdAt: DateTime.now());
 
       newArticle.id =

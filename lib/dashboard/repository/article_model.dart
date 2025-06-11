@@ -8,6 +8,7 @@ class ArticleModel {
   String body;
   String author;
   String verifiedBy;
+  int views;
   DateTime? createdAt;
   DateTime? updatedAt;
 
@@ -18,12 +19,19 @@ class ArticleModel {
     required this.body,
     required this.author,
     required this.verifiedBy,
+    required this.views,
     this.createdAt,
     this.updatedAt,
   });
 
   static ArticleModel empty() => ArticleModel(
-      id: '', image: '', title: '', body: '', author: '', verifiedBy: '');
+      id: '',
+      image: '',
+      title: '',
+      body: '',
+      author: '',
+      verifiedBy: '',
+      views: 0);
   String get formattedDate => GoPeduliFormatter.formatDate(createdAt);
   String get formattedUpdateAtDate => GoPeduliFormatter.formatDate(updatedAt);
 
@@ -34,6 +42,7 @@ class ArticleModel {
       'Body': body,
       'Author': author,
       'VerifiedBy': verifiedBy,
+      'Views': views,
       'CreatedAt': createdAt,
       'UpdatedAt': updatedAt = DateTime.now(),
     };
@@ -50,6 +59,7 @@ class ArticleModel {
         body: data['Body'] ?? '',
         author: data['Author'] ?? '',
         verifiedBy: data['VerifiedBy'] ?? '',
+        views: data['Views'] ?? '',
         createdAt:
             data.containsKey('CreatedAt') ? data['CreatedAt']?.toDate() : null,
         updatedAt:

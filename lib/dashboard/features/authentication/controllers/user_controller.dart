@@ -109,10 +109,16 @@ class MyDataUser extends DataTableSource {
         Text(user.name),
       ),
       DataCell(
+        Text(user.gender),
+      ),
+      DataCell(
         Text(user.email),
       ),
       DataCell(
         Text(user.phoneNumber),
+      ),
+      DataCell(
+        Text(user.address),
       ),
       DataCell(Text(user.createdAt == null ? '' : user.formattedDate)),
     ]);
