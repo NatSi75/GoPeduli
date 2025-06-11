@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
+import 'package:gopeduli/screens/transaction_screen.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import '../screens/home_screen.dart';
 import '../screens/shop_screen.dart';
-import '../screens/chat_screen.dart';
-import '../screens/history_screen.dart';
+import '../screens/message_list_screen.dart';
+import '../screens/transaction_screen.dart';
 import '../screens/profile_screen.dart';
 
 class Navigation extends StatefulWidget {
@@ -22,8 +23,8 @@ class _NavigationState extends State<Navigation> {
   final screen = [
     const HomeScreen(),
     const ShopScreen(),
-    const ChatScreen(),
-    const HistoryScreen(),
+    const MessageListScreen(),
+    const TransactionScreen(),
     const ProfileScreen(),
   ];
 

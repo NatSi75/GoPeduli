@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gopeduli/screens/user_authentication/login_screen.dart';
+import 'package:gopeduli/screens/user_authentication/verify_email_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,22 +41,32 @@ Future<void> _register() async {
       password: passwordController.text.trim(),
     );
 
-    // Save additional info to Firestore
-    final uid = userCredential.user!.uid;
+    final user = userCredential.user!;
+    
+    // Send email verification
+    await user.sendEmailVerification();
 
-    await FirebaseFirestore.instance.collection('users').doc(uid).set({
+    // Save additional info to Firestore
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
       'Email': emailController.text.trim(),
       'Name': nameController.text.trim(),
       'Phone': phoneController.text.trim(),
       'CreatedAt': FieldValue.serverTimestamp(),
-      'UpdatedAt': null,                   
-      'ProfilePicture': '',                 // empty string for now
-      'Role': 'member',                     // default role
+      'UpdatedAt': null,
+      'ProfilePicture': '',
+      'Role': 'member',
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Registration successful!')),
+      SnackBar(content: Text('Verification email sent. Please check your inbox.')),
     );
+
+    // Redirect to email verification screen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => VerifyEmailScreen()),
+    );
+
   } on FirebaseAuthException catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(e.message ?? 'Registration failed')),
@@ -64,6 +75,7 @@ Future<void> _register() async {
     setState(() => isLoading = false);
   }
 }
+
 
 
   Widget _buildTextField({
