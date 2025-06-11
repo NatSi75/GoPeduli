@@ -4,8 +4,15 @@ import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
+  final String receiverUserName;
+  final String receiverUserImage;
 
-  const ChatScreen({super.key, required this.chatId});
+  const ChatScreen({
+    super.key,
+    required this.chatId,
+    required this.receiverUserName,
+    required this.receiverUserImage,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -24,12 +31,13 @@ class _ChatScreenState extends State<ChatScreen> {
     final messageData = {
       'text': text,
       'senderId': user!.uid,
-      'senderName': user!.email,
+      'senderName': user!.email, // You might want to use a display name if available
       'timestamp': now,
       'seenBy': [user!.uid], // sender immediately sees their own message
     };
 
-    final chatDoc = FirebaseFirestore.instance.collection('chats').doc(widget.chatId);
+    final chatDoc =
+        FirebaseFirestore.instance.collection('chats').doc(widget.chatId);
 
     await chatDoc.collection('messages').add(messageData);
 
@@ -45,7 +53,21 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: widget.receiverUserImage.isNotEmpty
+                  ? NetworkImage(widget.receiverUserImage)
+                  : const AssetImage('assets/images/default_person.png')
+                      as ImageProvider,
+            ),
+            const SizedBox(width: 12),
+            Text(widget.receiverUserName),
+          ],
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -57,11 +79,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   .orderBy('timestamp')
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
                 final messages = snapshot.data!.docs;
 
-                // ✅ Update lastSeenBy in chat document
+                // Update 'lastSeenBy' timestamp in the chat document
                 if (messages.isNotEmpty) {
                   final lastMessage = messages.last;
                   final lastTimestamp = lastMessage['timestamp'];
@@ -83,7 +107,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     final msg = messages[index];
                     final isMe = msg['senderId'] == user?.uid;
 
-                    // Read timestamp
                     final timestamp = msg['timestamp'];
                     String timeString = '';
                     if (timestamp != null && timestamp is Timestamp) {
@@ -92,28 +115,33 @@ class _ChatScreenState extends State<ChatScreen> {
                           '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
                     }
 
-                    // safely get seenBy list
-                    final seenBy = (msg.data() as Map<String, dynamic>).containsKey('seenBy')
-                        ? List<String>.from(msg['seenBy'])
-                        : [];
+                    final seenBy =
+                        (msg.data() as Map<String, dynamic>).containsKey('seenBy')
+                            ? List<String>.from(msg['seenBy'])
+                            : [];
 
-                    // if not yet seen by me — mark it as seen
+                    // If not yet seen by the current user, mark it as seen
                     if (!seenBy.contains(user!.uid)) {
                       FirebaseFirestore.instance
                           .collection('chats')
                           .doc(widget.chatId)
                           .collection('messages')
                           .doc(msg.id)
-                          .update({'seenBy': FieldValue.arrayUnion([user!.uid])});
+                          .update({
+                        'seenBy': FieldValue.arrayUnion([user!.uid])
+                      });
                     }
 
                     return Align(
-                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment:
+                          isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        constraints:
-                            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 4, horizontal: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.75),
                         decoration: BoxDecoration(
                           color: isMe ? Colors.teal[300] : Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
@@ -139,7 +167,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   timeString,
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: isMe ? Colors.white70 : Colors.black54,
+                                    color:
+                                        isMe ? Colors.white70 : Colors.black54,
                                   ),
                                 ),
                               ],
@@ -147,10 +176,12 @@ class _ChatScreenState extends State<ChatScreen> {
                             if (isMe)
                               Icon(
                                 seenBy.length > 1
-                                    ? Icons.done_all // double checkmark
-                                    : Icons.done, // single checkmark
+                                    ? Icons.done_all // Double checkmark
+                                    : Icons.done, // Single checkmark
                                 size: 16,
-                                color: seenBy.length > 1 ? Colors.white : Colors.white70,
+                                color: seenBy.length > 1
+                                    ? Colors.white
+                                    : Colors.white70,
                               ),
                           ],
                         ),
@@ -170,13 +201,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     controller: _controller,
                     decoration: InputDecoration(
                       hintText: 'Type message...',
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(color: Colors.teal, width: 2),
+                        borderSide:
+                            const BorderSide(color: Colors.teal, width: 2),
                       ),
                     ),
                   ),
@@ -186,7 +219,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   onPressed: _sendMessage,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white, // ✅ white text
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
-import 'doctor_search_screen.dart'; 
+import 'doctor_search_screen.dart';
 
 class MessageListScreen extends StatefulWidget {
   const MessageListScreen({super.key});
@@ -31,6 +31,28 @@ class _MessageListScreenState extends State<MessageListScreen> {
     super.dispose();
   }
 
+  // Helper function to format the timestamp
+  String _formatTimestamp(BuildContext context, Timestamp timestamp) {
+    final now = DateTime.now();
+    final messageDate = timestamp.toDate();
+    
+    // Using today's date but without the time component
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+
+    if (messageDate.isAfter(today)) {
+      // Message is from today, show the time
+      return TimeOfDay.fromDateTime(messageDate).format(context);
+    } else if (messageDate.isAfter(yesterday)) {
+      // Message is from yesterday
+      return 'Yesterday';
+    } else {
+      // Message is older than yesterday, show the date
+      return '${messageDate.day}/${messageDate.month}/${messageDate.year}';
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -42,6 +64,7 @@ class _MessageListScreenState extends State<MessageListScreen> {
     return SafeArea(
       child: Scaffold(
         body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
               padding: EdgeInsets.all(16),
@@ -65,16 +88,12 @@ class _MessageListScreenState extends State<MessageListScreen> {
                           },
                         )
                       : null,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-
-                  // --- PERUBAHAN DI SINI ---
-                  // Mendefinisikan border saat tidak fokus
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25.0),
                     borderSide: const BorderSide(color: Colors.grey, width: 1.0),
                   ),
-
-                  // Mendefinisikan border saat fokus menjadi TEAL
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25.0),
                     borderSide: const BorderSide(color: Colors.teal, width: 2.0),
@@ -97,7 +116,8 @@ class _MessageListScreenState extends State<MessageListScreen> {
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Center(child: Text('No messages yet.'));
                   }
-                  return _buildFilteredChatList(snapshot.data!.docs, currentUser.uid);
+                  // This now handles filtering internally
+                  return _buildChatList(snapshot.data!.docs, currentUser.uid);
                 },
               ),
             ),
@@ -117,13 +137,21 @@ class _MessageListScreenState extends State<MessageListScreen> {
     );
   }
 
-  Widget _buildFilteredChatList(List<QueryDocumentSnapshot> chats, String currentUserId) {
+  Widget _buildChatList(List<QueryDocumentSnapshot> chats, String currentUserId) {
+    // Filter chats based on search query before building the list
+    final filteredChats = chats.where((chat) {
+      // We need to fetch user data to filter by name, so we do this inside the FutureBuilder
+      // For now, we pass all chats to the ListView.builder
+      return true;
+    }).toList();
+
     return ListView.builder(
-      itemCount: chats.length,
+      itemCount: filteredChats.length,
       itemBuilder: (context, index) {
-        final chat = chats[index];
+        final chat = filteredChats[index];
         final members = List<String>.from(chat['members']);
-        final otherUserId = members.firstWhere((id) => id != currentUserId, orElse: () => '');
+        final otherUserId =
+            members.firstWhere((id) => id != currentUserId, orElse: () => '');
 
         if (otherUserId.isEmpty) return const SizedBox.shrink();
 
@@ -136,53 +164,67 @@ class _MessageListScreenState extends State<MessageListScreen> {
                 title: Text("Loading..."),
               );
             }
-            if (!userSnapshot.hasData) {
+            if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
               return const SizedBox.shrink();
             }
 
-            final userData = userSnapshot.data!.data() as Map<String, dynamic>? ?? {};
+            final userData = userSnapshot.data!.data() as Map<String, dynamic>;
             final name = userData['Name'] as String? ?? 'No Name';
 
-            if (_searchQuery.isNotEmpty && !name.toLowerCase().contains(_searchQuery.toLowerCase())) {
+            // Apply search filter here
+            if (_searchQuery.isNotEmpty &&
+                !name.toLowerCase().contains(_searchQuery.toLowerCase())) {
               return const SizedBox.shrink();
             }
 
             final photoUrl = userData['ProfilePicture'] ?? '';
             final lastMessage = chat['lastMessage'] ?? '';
             final lastMessageTimestamp = chat['createdAt'] as Timestamp?;
-            final data = chat.data() as Map<String, dynamic>?;
-            final lastSeenMap = (data != null && data.containsKey('lastSeenBy'))
-                ? Map<String, dynamic>.from(data['lastSeenBy'])
-                : {};
+
+            final chatData = chat.data() as Map<String, dynamic>;
+            final lastSeenMap = chatData.containsKey('lastSeenBy')
+                ? Map<String, dynamic>.from(chatData['lastSeenBy'])
+                : <String, dynamic>{};
+                
             final lastSeenTimestamp = lastSeenMap[currentUserId] as Timestamp?;
             final hasUnread = lastMessageTimestamp != null &&
-                (lastSeenTimestamp == null || lastMessageTimestamp.toDate().isAfter(lastSeenTimestamp.toDate()));
+                (lastSeenTimestamp == null ||
+                    lastMessageTimestamp.toDate().isAfter(lastSeenTimestamp.toDate()));
 
             return ListTile(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChatScreen(chatId: chat.id),
+                    // ✅ FIX: Pass all required parameters to ChatScreen
+                    builder: (context) => ChatScreen(
+                      chatId: chat.id,
+                      receiverUserName: name,
+                      receiverUserImage: photoUrl,
+                    ),
                   ),
                 );
               },
               leading: CircleAvatar(
                 backgroundImage: photoUrl.isNotEmpty
                     ? NetworkImage(photoUrl)
-                    : const AssetImage('assets/images/default_person.png') as ImageProvider,
+                    : const AssetImage('assets/images/default_person.png')
+                        as ImageProvider,
                 onBackgroundImageError: (exception, stackTrace) {
                   print('Error loading image: $exception');
                 },
               ),
               title: Text(
                 name,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(
+                    fontWeight: hasUnread ? FontWeight.bold : FontWeight.w600),
               ),
               subtitle: Text(
                 lastMessage,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal),
               ),
               trailing: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -190,22 +232,25 @@ class _MessageListScreenState extends State<MessageListScreen> {
                 children: [
                   if (lastMessageTimestamp != null)
                     Text(
-                      TimeOfDay.fromDateTime(lastMessageTimestamp.toDate()).format(context),
-                      style: const TextStyle(fontSize: 12),
+                      _formatTimestamp(context, lastMessageTimestamp), // Use helper
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: hasUnread ? Colors.teal : Colors.grey,
+                        fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal
+                      ),
                     ),
                   const SizedBox(height: 4),
                   if (hasUnread)
                     Container(
-                      padding: const EdgeInsets.all(6),
+                      width: 12,
+                      height: 12,
                       decoration: const BoxDecoration(
-                        color: Colors.red,
+                        color: Colors.teal,
                         shape: BoxShape.circle,
                       ),
-                      child: const Text(
-                        '1',
-                        style: TextStyle(color: Colors.white, fontSize: 11),
-                      ),
-                    ),
+                    )
+                  else
+                    const SizedBox(height: 12), // Placeholder for alignment
                 ],
               ),
             );
