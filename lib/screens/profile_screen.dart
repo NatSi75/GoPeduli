@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import '../models/user_model.dart';
 import '../providers/user_provider.dart';
 import 'user_authentication/login_screen.dart';
 import 'user_details_screen.dart';
@@ -47,9 +45,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 30,
-                  backgroundImage: AssetImage(defaultImage),
-                ),
+                    radius: 30,
+                    backgroundColor: const Color.fromARGB(255, 10, 97, 89)
+                        // ignore: deprecated_member_use
+                        .withOpacity(0.7),
+                    child: CircleAvatar(
+                      radius: 26,
+                      backgroundImage: AssetImage(defaultImage),
+                    )),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,10 +67,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     Text(
-                      userProvider.role,
+                      userProvider.role[0].toUpperCase() +
+                          userProvider.role.substring(1),
                       style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 16,
+                        fontWeight: FontWeight.w500,
                         color: Colors.white,
                       ),
                     ),

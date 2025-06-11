@@ -7,7 +7,6 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../screens/home_screen.dart';
 import '../screens/shop_screen.dart';
 import '../screens/message_list_screen.dart';
-import '../screens/transaction_screen.dart';
 import '../screens/profile_screen.dart';
 
 class Navigation extends StatefulWidget {
