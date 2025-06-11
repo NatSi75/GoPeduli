@@ -217,7 +217,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 const Icon(Icons.timer_outlined, color: Colors.redAccent),
                 const SizedBox(width: 6),
                 Text(
-                  '${formattedTime}',
+                  formattedTime,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.red.shade400,
@@ -235,19 +235,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
               decoration: BoxDecoration(
                 color: whiteColor,
                 borderRadius: BorderRadius.circular(18),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.black12,
                     blurRadius: 8,
-                    offset: const Offset(0, 4),
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Icon(Icons.shopping_bag_outlined,
                           color: primaryColor, size: 20),
                       SizedBox(width: 8),
@@ -290,7 +290,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     'x${item.quantity}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: textGray,
                                       fontSize: 13,
                                     ),
@@ -326,9 +326,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Widget _buildSummaryRow(String title, double value,
       {bool isTotal = false, IconData? icon}) {
-    final Color primaryColor = const Color(0xff199a8e); // hijau kesehatan
-    final Color bgColor =
-        const Color(0xffd0f0e9); // hijau terang untuk background total
+    const Color primaryColor = Color(0xff199a8e); // hijau kesehatan
+    const Color bgColor =
+        Color(0xffd0f0e9); // hijau terang untuk background total
 
     Widget content = Padding(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
@@ -369,7 +369,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     // Jika total, bungkus dengan container berwarna
     return isTotal
         ? Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: bgColor,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

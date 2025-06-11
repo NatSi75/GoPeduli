@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/article_model.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Penting untuk mendapatkan ID pengguna
 
 class ArticleScreen extends StatefulWidget {
   final String articleId;
@@ -13,33 +15,130 @@ class ArticleScreen extends StatefulWidget {
 }
 
 class _ArticleScreenState extends State<ArticleScreen> {
-  late Future<Article> articleFuture;
+  late Future<Article> _articleFuture;
   bool isBookmarked = false;
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
     super.initState();
-    articleFuture = _fetchArticleData();
+    _articleFuture = _fetchArticleDataAndHandleViews();
   }
 
-  Future<Article> _fetchArticleData() async {
-    final doc = await FirebaseFirestore.instance
-        .collection('articles')
-        .doc(widget.articleId)
-        .get();
+  // Fungsi baru untuk fetch artikel, handle views, dan cek bookmark
+  Future<Article> _fetchArticleDataAndHandleViews() async {
+    final articleRef = _firestore.collection('articles').doc(widget.articleId);
+    final user = _auth.currentUser; // Dapatkan pengguna saat ini
 
-    if (!doc.exists) {
+    // 1. Handle Views
+    if (user != null) {
+      // Jika pengguna login, cek apakah sudah melihat artikel ini
+      final userViewedArticleRef = _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection(
+              'viewed_articles') // Sub-koleksi baru untuk melacak artikel yang sudah dilihat
+          .doc(widget.articleId);
+
+      final viewedDoc = await userViewedArticleRef.get();
+
+      if (!viewedDoc.exists) {
+        // Jika belum ada catatan, ini adalah view pertama dari pengguna ini
+        try {
+          // Increment 'Views' field di dokumen artikel utama
+          await articleRef.update({
+            'Views': FieldValue.increment(1),
+          });
+          // Buat dokumen di sub-koleksi user untuk menandai artikel sudah dilihat
+          await userViewedArticleRef.set({
+            'viewedAt': FieldValue.serverTimestamp(), // Timestamp kapan dilihat
+          });
+          debugPrint(
+              'Views incremented for ${widget.articleId} by ${user.uid}');
+        } catch (e) {
+          debugPrint('Error incrementing views or marking as viewed: $e');
+          // Lanjutkan proses meskipun ada error di sini
+        }
+      } else {
+        debugPrint(
+            'Article ${widget.articleId} already viewed by ${user.uid}. No increment.');
+      }
+    } else {
+      // Optional: Jika pengguna tidak login, Anda bisa memilih untuk tetap meng-increment views
+      // atau tidak menghitung views sama sekali.
+      // Saat ini, kita tidak akan meng-increment views jika user tidak login untuk fokus pada 'per user'.
+      debugPrint('User not logged in. Views not incremented per user.');
+    }
+
+    // 2. Cek status bookmark dari pengguna saat ini
+    if (user != null) {
+      final userBookmarksRef = _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('bookmarked_articles')
+          .doc(widget.articleId);
+
+      final bookmarkDoc = await userBookmarksRef.get();
+      setState(() {
+        isBookmarked = bookmarkDoc.exists;
+      });
+    }
+
+    // 3. Fetch artikel setelah semua operasi di atas
+    final docSnapshot = await articleRef.get();
+    if (!docSnapshot.exists) {
       throw Exception('Article not found');
     }
 
-    return Article.fromFirestore(doc);
+    return Article.fromFirestore(docSnapshot);
   }
 
-  void _toggleBookmark() {
+  void _toggleBookmark() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to bookmark articles.')),
+      );
+      return;
+    }
+
+    final userBookmarkDocRef = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('bookmarked_articles')
+        .doc(widget.articleId);
+
     setState(() {
-      isBookmarked = !isBookmarked;
+      isBookmarked = !isBookmarked; // Update UI segera
     });
-    // TODO: Implement Firebase bookmark functionality
+
+    try {
+      if (isBookmarked) {
+        await userBookmarkDocRef.set({
+          'bookmarkedAt': FieldValue.serverTimestamp(),
+          'articleId': widget.articleId,
+          // Anda bisa menyimpan data artikel penting lainnya di sini jika diperlukan
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Article bookmarked!')),
+        );
+      } else {
+        await userBookmarkDocRef.delete();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Article unbookmarked.')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error toggling bookmark: $e');
+      setState(() {
+        isBookmarked = !isBookmarked; // Rollback UI jika ada error
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update bookmark: $e')),
+      );
+    }
   }
 
   @override
@@ -57,7 +156,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
           IconButton(
             icon: Icon(
               isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-              color: Colors.black,
+              color: const Color.fromARGB(255, 0, 0, 0),
             ),
             onPressed: _toggleBookmark,
           ),
@@ -74,7 +173,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
         centerTitle: true,
       ),
       body: FutureBuilder<Article>(
-        future: articleFuture,
+        future: _articleFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -96,7 +195,8 @@ class _ArticleScreenState extends State<ArticleScreen> {
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        articleFuture = _fetchArticleData();
+                        _articleFuture =
+                            _fetchArticleDataAndHandleViews(); // Retry
                       });
                     },
                     child: const Text('Retry'),
@@ -106,9 +206,12 @@ class _ArticleScreenState extends State<ArticleScreen> {
             );
           }
 
+          if (!snapshot.hasData) {
+            return const Center(child: Text('Article not found.'));
+          }
+
           final article = snapshot.data!;
-          final formattedDate =
-              DateFormat('MMMM dd, yyyy').format(article.createdAt);
+          final formattedDate = article.formattedDate;
 
           return SingleChildScrollView(
             child: Column(
@@ -129,7 +232,8 @@ class _ArticleScreenState extends State<ArticleScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      _buildAuthorRow(article.author, formattedDate),
+                      _buildAuthorRow(
+                          article.author, formattedDate, article.views),
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -175,12 +279,12 @@ class _ArticleScreenState extends State<ArticleScreen> {
         bottomLeft: Radius.circular(20),
         bottomRight: Radius.circular(20),
       ),
-      child: Image.network(
-        imageUrl,
+      child: CachedNetworkImage(
+        imageUrl: imageUrl,
         width: double.infinity,
         height: 250,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
+        errorWidget: (context, url, error) {
           return Container(
             height: 250,
             color: Colors.grey[200],
@@ -189,16 +293,13 @@ class _ArticleScreenState extends State<ArticleScreen> {
             ),
           );
         },
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
+        placeholder: (context, url) {
           return SizedBox(
             height: 250,
             child: Center(
               child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                    : null,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Theme.of(context).primaryColor),
               ),
             ),
           );
@@ -207,21 +308,34 @@ class _ArticleScreenState extends State<ArticleScreen> {
     );
   }
 
-  Widget _buildAuthorRow(String author, String date) {
+  Widget _buildAuthorRow(String author, String date, int views) {
     return Row(
       children: [
         const CircleAvatar(
           radius: 16,
-          backgroundImage: AssetImage('assets/images/default_profile.png'),
+          backgroundImage: AssetImage('assets/images/default_person.png'),
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            'By $author • $date',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'By $author',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+              Text(
+                '$date • Views: $views',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
           ),
         ),
       ],

@@ -8,10 +8,12 @@ import 'package:gopeduli/screens/user_authentication/verify_email_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MaterialApp(home: SignUpScreen()));
+  runApp(const MaterialApp(home: SignUpScreen()));
 }
 
 class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
@@ -29,54 +31,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool agreeToTerms = false;
   bool isLoading = false;
 
-Future<void> _register() async {
-  if (!_formKey.currentState!.validate() || !agreeToTerms) return;
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate() || !agreeToTerms) return;
 
-  setState(() => isLoading = true);
+    setState(() => isLoading = true);
 
-  try {
-    // Register user with email + password
-    final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-    );
+    try {
+      // Register user with email + password
+      final userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
-    final user = userCredential.user!;
-    
-    // Send email verification
-    await user.sendEmailVerification();
+      final user = userCredential.user!;
 
-    // Save additional info to Firestore
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-      'Email': emailController.text.trim(),
-      'Name': nameController.text.trim(),
-      'Phone': phoneController.text.trim(),
-      'CreatedAt': FieldValue.serverTimestamp(),
-      'UpdatedAt': null,
-      'ProfilePicture': '',
-      'Role': 'member',
-    });
+      // Send email verification
+      await user.sendEmailVerification();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Verification email sent. Please check your inbox.')),
-    );
+      // Save additional info to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'Email': emailController.text.trim(),
+        'Name': nameController.text.trim(),
+        'Phone': phoneController.text.trim(),
+        'CreatedAt': FieldValue.serverTimestamp(),
+        'UpdatedAt': null,
+        'ProfilePicture': '',
+        'Role': 'member',
+      });
 
-    // Redirect to email verification screen
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => VerifyEmailScreen()),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Verification email sent. Please check your inbox.')),
+      );
 
-  } on FirebaseAuthException catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.message ?? 'Registration failed')),
-    );
-  } finally {
-    setState(() => isLoading = false);
+      // Redirect to email verification screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => VerifyEmailScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Registration failed')),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
-}
-
-
 
   Widget _buildTextField({
     required String hint,
@@ -98,7 +99,8 @@ Future<void> _register() async {
         hintText: hint,
         suffixIcon: isPassword
             ? IconButton(
-                icon: Icon(isObscured ? Icons.visibility_off : Icons.visibility),
+                icon:
+                    Icon(isObscured ? Icons.visibility_off : Icons.visibility),
                 onPressed: toggleVisibility,
               )
             : null,
@@ -106,15 +108,15 @@ Future<void> _register() async {
         fillColor: Colors.grey[200],
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey),
+          borderSide: const BorderSide(color: Colors.grey),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey),
+          borderSide: const BorderSide(color: Colors.grey),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey),
+          borderSide: const BorderSide(color: Colors.grey),
         ),
       ),
     );
@@ -132,114 +134,145 @@ Future<void> _register() async {
               key: _formKey,
               child: Column(
                 children: [
-                  SizedBox(height: 50),
-                  Text("Sign Up", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 60),
+                  const SizedBox(height: 50),
+                  const Text("Sign Up",
+                      style:
+                          TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 60),
                   _buildTextField(
                     hint: 'Enter your email',
                     controller: emailController,
                     icon: Icons.email,
                     validator: (value) {
-                      if (value == null || value.isEmpty) return 'Email is required';
-                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) return 'Enter a valid email';
+                      if (value == null || value.isEmpty)
+                        return 'Email is required';
+                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value))
+                        return 'Enter a valid email';
                       return null;
                     },
                     keyboardType: TextInputType.emailAddress,
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   _buildTextField(
                     hint: 'Enter your name',
                     controller: nameController,
                     icon: Icons.person,
-                    validator: (value) => value == null || value.isEmpty ? 'Name is required' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Name is required'
+                        : null,
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   _buildTextField(
                     hint: 'Enter your phone number',
                     controller: phoneController,
                     icon: Icons.phone,
-                    validator: (value) => value == null || value.isEmpty ? 'Phone number is required' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Phone number is required'
+                        : null,
                     keyboardType: TextInputType.phone,
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   _buildTextField(
                     hint: 'Enter your password',
                     controller: passwordController,
                     icon: Icons.lock,
                     isPassword: true,
                     isObscured: !isPasswordVisible,
-                    toggleVisibility: () => setState(() => isPasswordVisible = !isPasswordVisible),
+                    toggleVisibility: () =>
+                        setState(() => isPasswordVisible = !isPasswordVisible),
                     validator: (value) {
-                      if (value == null || value.length < 6) return 'Password must be at least 6 characters';
+                      if (value == null || value.length < 6)
+                        return 'Password must be at least 6 characters';
                       return null;
                     },
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   _buildTextField(
                     hint: 'Confirm your password',
                     controller: confirmPasswordController,
                     icon: Icons.lock_outline,
                     isPassword: true,
                     isObscured: !isPasswordVisible,
-                    toggleVisibility: () => setState(() => isPasswordVisible = !isPasswordVisible),
+                    toggleVisibility: () =>
+                        setState(() => isPasswordVisible = !isPasswordVisible),
                     validator: (value) {
-                      if (value != passwordController.text) return 'Passwords do not match';
+                      if (value != passwordController.text)
+                        return 'Passwords do not match';
                       return null;
                     },
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Checkbox(
                         value: agreeToTerms,
-                        onChanged: (value) => setState(() => agreeToTerms = value ?? false),
+                        onChanged: (value) =>
+                            setState(() => agreeToTerms = value ?? false),
                       ),
                       Expanded(
                         child: Wrap(
                           children: [
-                            Text("I agree to GoPeduli "),
+                            const Text("I agree to GoPeduli "),
                             GestureDetector(
                               onTap: () {},
-                              child: Text("Terms of Service", style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),),
+                              child: const Text(
+                                "Terms of Service",
+                                style: TextStyle(
+                                    color: Colors.teal,
+                                    fontWeight: FontWeight.bold),
+                              ),
                             ),
-                            Text(" and "),
+                            const Text(" and "),
                             GestureDetector(
                               onTap: () {},
-                              child: Text("Privacy Policy", style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),),
+                              child: const Text(
+                                "Privacy Policy",
+                                style: TextStyle(
+                                    color: Colors.teal,
+                                    fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: isLoading ? null : _register,
-                      child: isLoading
-                          ? CircularProgressIndicator(color: Colors.white)
-                          : Text("Sign Up", style: TextStyle(color: Colors.white)),
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30)),
                         backgroundColor: Colors.teal,
                       ),
+                      child: isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("Sign Up",
+                              style: TextStyle(color: Colors.white)),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Already have an account? ", style: TextStyle(color: Colors.black)),
+                      const Text("Already have an account? ",
+                          style: TextStyle(color: Colors.black)),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            MaterialPageRoute(
+                                builder: (context) => const LoginScreen()),
                           );
                         },
-                        child: const Text("Login", style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),),
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(
+                              color: Colors.teal, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
