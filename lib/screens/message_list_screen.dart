@@ -2,10 +2,34 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
-import 'user_search_screen.dart';
+import 'doctor_search_screen.dart'; 
 
-class MessageListScreen extends StatelessWidget {
+class MessageListScreen extends StatefulWidget {
   const MessageListScreen({super.key});
+
+  @override
+  State<MessageListScreen> createState() => _MessageListScreenState();
+}
+
+class _MessageListScreenState extends State<MessageListScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,30 +50,39 @@ class MessageListScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  _TabButton(label: 'All', selected: true),
-                  SizedBox(width: 10),
-                  _TabButton(label: 'Group'),
-                  SizedBox(width: 10),
-                  _TabButton(label: 'Private'),
-                ],
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
+                controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+
+                  // --- PERUBAHAN DI SINI ---
+                  // Mendefinisikan border saat tidak fokus
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                  ),
+
+                  // Mendefinisikan border saat fokus menjadi TEAL
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(color: Colors.teal, width: 2.0),
                   ),
                 ),
               ),
             ),
+            const SizedBox(height: 10),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
@@ -58,94 +91,13 @@ class MessageListScreen extends StatelessWidget {
                     .orderBy('createdAt', descending: true)
                     .snapshots(),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-                  final chats = snapshot.data!.docs;
-
-                  if (chats.isEmpty) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Center(child: Text('No messages yet.'));
                   }
-
-                  return ListView.builder(
-                    itemCount: chats.length,
-                    itemBuilder: (context, index) {
-                      final chat = chats[index];
-                      final members = List<String>.from(chat['members']);
-                      final otherUserId = members.firstWhere((id) => id != currentUser.uid, orElse: () => '');
-
-                      final lastMessage = chat['lastMessage'] ?? '';
-                      final lastMessageTimestamp = chat['createdAt'] as Timestamp?;
-                    final data = chat.data() as Map<String, dynamic>?;
-
-                    final lastSeenMap = (data != null && data.containsKey('lastSeenBy'))
-                        ? Map<String, dynamic>.from(data['lastSeenBy'])
-                        : {};
-                      final lastSeenTimestamp = lastSeenMap[currentUser.uid] as Timestamp?;
-
-                      // Determine if there are unread messages for this user
-                      final hasUnread = lastMessageTimestamp != null &&
-                          (lastSeenTimestamp == null || lastMessageTimestamp.toDate().isAfter(lastSeenTimestamp.toDate()));
-
-                      return FutureBuilder<DocumentSnapshot>(
-                        future: FirebaseFirestore.instance.collection('users').doc(otherUserId).get(),
-                        builder: (context, userSnapshot) {
-                          if (!userSnapshot.hasData) return const SizedBox.shrink();
-
-                          final userData = userSnapshot.data!.data() as Map<String, dynamic>? ?? {};
-                          final name = userData['Name'] ?? 'No Name';
-                          final photo = userData['ProfilePicture'] ?? '';
-
-                          return ListTile(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatScreen(chatId: chat.id),
-                                ),
-                              );
-                            },
-                            leading: CircleAvatar(
-                              backgroundImage: photo.isNotEmpty
-                                  ? NetworkImage(photo)
-                                  : const AssetImage('assets/image/default_avatar.png') as ImageProvider,
-                            ),
-                            title: Text(
-                              name,
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            subtitle: Text(
-                              lastMessage,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                if (lastMessageTimestamp != null)
-                                  Text(
-                                    TimeOfDay.fromDateTime(lastMessageTimestamp.toDate()).format(context),
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                if (hasUnread)
-                                  Container(
-                                    margin: const EdgeInsets.only(top: 4),
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Text(
-                                      '1',
-                                      style: TextStyle(color: Colors.white, fontSize: 11),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
+                  return _buildFilteredChatList(snapshot.data!.docs, currentUser.uid);
                 },
               ),
             ),
@@ -164,33 +116,102 @@ class MessageListScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class _TabButton extends StatelessWidget {
-  final String label;
-  final bool selected;
+  Widget _buildFilteredChatList(List<QueryDocumentSnapshot> chats, String currentUserId) {
+    return ListView.builder(
+      itemCount: chats.length,
+      itemBuilder: (context, index) {
+        final chat = chats[index];
+        final members = List<String>.from(chat['members']);
+        final otherUserId = members.firstWhere((id) => id != currentUserId, orElse: () => '');
 
-  const _TabButton({required this.label, this.selected = false});
+        if (otherUserId.isEmpty) return const SizedBox.shrink();
 
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        height: 36,
-        decoration: BoxDecoration(
-          color: selected ? Colors.teal[100] : Colors.grey[200],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected ? Colors.teal[800] : Colors.grey[700],
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
+        return FutureBuilder<DocumentSnapshot>(
+          future: FirebaseFirestore.instance.collection('users').doc(otherUserId).get(),
+          builder: (context, userSnapshot) {
+            if (userSnapshot.connectionState == ConnectionState.waiting) {
+              return const ListTile(
+                leading: CircleAvatar(),
+                title: Text("Loading..."),
+              );
+            }
+            if (!userSnapshot.hasData) {
+              return const SizedBox.shrink();
+            }
+
+            final userData = userSnapshot.data!.data() as Map<String, dynamic>? ?? {};
+            final name = userData['Name'] as String? ?? 'No Name';
+
+            if (_searchQuery.isNotEmpty && !name.toLowerCase().contains(_searchQuery.toLowerCase())) {
+              return const SizedBox.shrink();
+            }
+
+            final photoUrl = userData['profilePicture'] ?? '';
+            final lastMessage = chat['lastMessage'] ?? '';
+            final lastMessageTimestamp = chat['createdAt'] as Timestamp?;
+            final data = chat.data() as Map<String, dynamic>?;
+            final lastSeenMap = (data != null && data.containsKey('lastSeenBy'))
+                ? Map<String, dynamic>.from(data['lastSeenBy'])
+                : {};
+            final lastSeenTimestamp = lastSeenMap[currentUserId] as Timestamp?;
+            final hasUnread = lastMessageTimestamp != null &&
+                (lastSeenTimestamp == null || lastMessageTimestamp.toDate().isAfter(lastSeenTimestamp.toDate()));
+
+            return ListTile(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatScreen(chatId: chat.id),
+                  ),
+                );
+              },
+              leading: CircleAvatar(
+                backgroundImage: photoUrl.isNotEmpty
+                    ? NetworkImage(photoUrl)
+                    : const AssetImage('assets/images/default_person.png') as ImageProvider,
+                onBackgroundImageError: (exception, stackTrace) {
+                  print('Error loading image: $exception');
+                },
+              ),
+              title: Text(
+                name,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                lastMessage,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (lastMessageTimestamp != null)
+                    Text(
+                      TimeOfDay.fromDateTime(lastMessageTimestamp.toDate()).format(context),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  const SizedBox(height: 4),
+                  if (hasUnread)
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Text(
+                        '1',
+                        style: TextStyle(color: Colors.white, fontSize: 11),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
