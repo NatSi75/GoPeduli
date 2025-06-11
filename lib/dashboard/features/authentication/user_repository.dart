@@ -11,6 +11,74 @@ class UserRepository extends GetxController {
   // FirebaseAuth instance
   final _db = FirebaseFirestore.instance;
 
+  /// Get total number of users
+  Future<int> getTotalUsers() async {
+    try {
+      final snapshot = await _db
+          .collection("users")
+          .where('Role', isEqualTo: 'member')
+          .get();
+      return snapshot.docs.length;
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
+    }
+  }
+
+  Future<int> getNewUsersPreviousMonthly() async {
+    try {
+      final DateTime now = DateTime.now();
+      final DateTime endOfPreviousMonth = DateTime(now.year, now.month, now.day)
+          .subtract(const Duration(days: 30));
+      final DateTime startOfPreviousMonth = endOfPreviousMonth
+          .subtract(const Duration(days: 30)); // Approximate 30 days prior
+
+      final querySnapshot = await _db
+          .collection("users")
+          .where(
+            'Role',
+            isEqualTo: 'member',
+          )
+          .where('createdAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfPreviousMonth))
+          .where('createdAt',
+              isLessThan: Timestamp.fromDate(endOfPreviousMonth))
+          .get();
+
+      return querySnapshot.docs.length;
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
+    }
+  }
+
+  Future<int> getNewUsersMonthly() async {
+    try {
+      final DateTime now = DateTime.now();
+      final DateTime thirtyDaysAgo = DateTime(now.year, now.month, now.day)
+          .subtract(const Duration(days: 30));
+
+      final querySnapshot = await _db
+          .collection("users")
+          .where(
+            'Role',
+            isEqualTo: 'member',
+          )
+          .where('createdAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(
+                  thirtyDaysAgo)) // Assuming a 'createdAt' field
+          .get();
+
+      return querySnapshot.docs.length;
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
+    }
+  }
+
   // Get all users from the 'users' collection
   Future<List<UserModel>> getAllUsers() async {
     try {
