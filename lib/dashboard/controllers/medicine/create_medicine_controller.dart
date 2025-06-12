@@ -132,7 +132,9 @@ class CreateMedicineController extends GetxController {
           nameProduct: nameProduct.text.trim(),
           description: description.text.trim(),
           nameMedicine: nameMedicine.text.trim(),
-          category: selectedCategories.join(', '),
+          category: selectedCategories
+              .where((element) => element.trim().isNotEmpty)
+              .join(', '),
           classMedicine: classMedicine.text.trim(),
           price: price.text.trim(),
           stock: stock.text.trim(),

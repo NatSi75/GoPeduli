@@ -54,6 +54,41 @@ class CreateDoctorForm extends StatelessWidget {
               ),
             ),
             const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+            const Text(
+              'Select Available Days',
+              style: TextStyle(
+                  fontSize: GoPeduliSize.fontSizeBody, color: Colors.black),
+            ),
+            const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
+            Obx(
+              () => Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: controller.daysOfWeek.map((dayName) {
+                  final isSelected =
+                      controller.selectedAvailableDays.contains(dayName);
+                  return FilterChip(
+                    label: Text(dayName,
+                        style: TextStyle(
+                            fontSize: GoPeduliSize.fontSizeBody,
+                            color: isSelected
+                                ? GoPeduliColors.white
+                                : Colors.black)),
+                    backgroundColor: GoPeduliColors.white,
+                    selectedColor: GoPeduliColors.primary,
+                    selected: isSelected,
+                    onSelected: (bool selected) {
+                      if (selected) {
+                        controller.selectedAvailableDays.add(dayName);
+                      } else {
+                        controller.selectedAvailableDays.remove(dayName);
+                      }
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: GoPeduliSize.sizedBoxHeightSmall),
             TextFormField(
               controller: controller.hospital,
               validator: (value) =>

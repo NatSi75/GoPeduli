@@ -38,6 +38,7 @@ class CreateCourierController extends GetxController {
         id: AuthenticationRepository.instance.authUser!.uid,
         profilePicture: '',
         hospital: '',
+        schedule: '',
         name: name.text.trim(),
         email: email.text.trim(),
         role: AppRole.courier,

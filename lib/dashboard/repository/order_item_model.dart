@@ -60,4 +60,24 @@ class OrderItemModel {
       return empty();
     }
   }
+
+  factory OrderItemModel.fromMap(Map<String, dynamic> map) {
+    return OrderItemModel(
+      id: map['id'] ??
+          '', // Asumsi ID mungkin ada di map jika data bersarang, jika tidak, bisa dihapus atau diabaikan
+      image: map['image'] ?? '', // <--- UBAH: dari 'Image' ke 'image'
+      name: map['name'] ?? '', // <--- UBAH: dari 'Name' ke 'name'
+      price: (map['price'] as num?)?.toInt() ??
+          0, // <--- UBAH: dari 'Price' ke 'price'
+      quantity: (map['quantity'] as num?)?.toInt() ??
+          0, // <--- UBAH: dari 'Quantity' ke 'quantity'
+      // createdAt dan updatedAt tidak ada di map yang disematkan, jadi biarkan null atau hapus jika tidak perlu.
+      createdAt: map.containsKey('createdAt')
+          ? (map['createdAt'] as Timestamp?)?.toDate()
+          : null,
+      updatedAt: map.containsKey('updatedAt')
+          ? (map['updatedAt'] as Timestamp?)?.toDate()
+          : null,
+    );
+  }
 }

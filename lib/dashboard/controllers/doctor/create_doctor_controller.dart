@@ -26,9 +26,21 @@ class CreateDoctorController extends GetxController {
   final password = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
+  final RxList<String> selectedAvailableDays = <String>[].obs;
+  final List<String> daysOfWeek = [
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+    'Minggu'
+  ];
+
   void resetFields() {
     imageURL.value = '';
     name.clear();
+    selectedAvailableDays.clear();
     hospital.clear();
     email.clear();
     password.clear();
@@ -53,6 +65,13 @@ class CreateDoctorController extends GetxController {
   Future<void> registerDoctor() async {
     try {
       if (!formKey.currentState!.validate()) {
+        return;
+      }
+
+      if (selectedAvailableDays.isEmpty) {
+        GoPeduliLoaders.errorSnackBar(
+            title: 'Oh Snap',
+            message: 'Please select at least one available day.');
         return;
       }
 
@@ -87,6 +106,9 @@ class CreateDoctorController extends GetxController {
         profilePicture: imageURL.value,
         name: name.text.trim(),
         hospital: hospital.text.trim(),
+        schedule: selectedAvailableDays
+            .where((element) => element.trim().isNotEmpty)
+            .join(', '),
         email: email.text.trim(),
         role: AppRole.doctor,
         createdAt: DateTime.now(),

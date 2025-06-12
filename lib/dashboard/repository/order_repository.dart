@@ -154,6 +154,21 @@ class OrderRepository extends GetxController {
     }
   }
 
+  Future<String> getUserEmailById(String userId) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      return doc.data()?['Email'] as String;
+    } on FirebaseException catch (e) {
+      throw e.message!;
+    } catch (e) {
+      throw 'Something Went Wrong! Please try again.';
+    }
+  }
+
   // Update Order Status
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
     try {

@@ -12,6 +12,7 @@ class GoPeduliRoutes {
   static const editMedicine = '/edit-medicine';
 
   static const orders = '/orders';
+  static const detailOrder = '/detail-order';
 
   static const doctors = '/doctors';
   static const createDoctor = '/create-doctor';

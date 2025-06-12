@@ -169,9 +169,11 @@ class CreateMedicineForm extends StatelessWidget {
                             .contains(cat.nameCategory);
                         return FilterChip(
                           label: Text(cat.nameCategory,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: GoPeduliSize.fontSizeBody,
-                                  color: Colors.black)),
+                                  color: isSelected
+                                      ? GoPeduliColors.white
+                                      : Colors.black)),
                           backgroundColor: GoPeduliColors.white,
                           selectedColor: GoPeduliColors.primary,
                           selected: isSelected,

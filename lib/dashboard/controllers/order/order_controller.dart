@@ -6,6 +6,7 @@ import 'package:gopeduli/dashboard/helper/color.dart';
 import 'package:gopeduli/dashboard/helper/size.dart';
 import 'package:gopeduli/dashboard/repository/order_model.dart';
 import 'package:gopeduli/dashboard/repository/order_repository.dart';
+import 'package:gopeduli/dashboard/routes/routes.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
 
@@ -17,6 +18,7 @@ class OrderController extends GetxController {
   RxList<OrderModel> allOrders = <OrderModel>[].obs;
   RxList<OrderModel> filteredOrders = <OrderModel>[].obs;
   RxMap<String, String> userNames = <String, String>{}.obs;
+  RxMap<String, String> userEmails = <String, String>{}.obs;
   RxInt sortColumnIndex =
       5.obs; //Observable for tracking the index of the column for string
   RxBool sortAscending = true
@@ -26,9 +28,12 @@ class OrderController extends GetxController {
   // List of possible order statuses
   final List<String> possibleStatuses = [
     'pending',
-    'settlement',
-    'expire',
-    'refund'
+    'proccessing',
+    'ready',
+    'shipped',
+    'delivered',
+    'completed',
+    'cancelled'
   ];
 
   @override
@@ -48,6 +53,17 @@ class OrderController extends GetxController {
     }
   }
 
+  Future<void> fetchUserEmail(String userId) async {
+    if (userEmails.containsKey(userId)) return; // Hindari fetch ulang
+
+    try {
+      final email = await OrderRepository.instance.getUserEmailById(userId);
+      userEmails[userId] = email; // Simpan nama pengguna dalam map
+    } catch (e) {
+      GoPeduliLoaders.errorSnackBar(title: 'Oh Snap', message: e.toString());
+    }
+  }
+
   Future<void> fetchData() async {
     try {
       List<OrderModel> fetchedOrders = [];
@@ -60,6 +76,7 @@ class OrderController extends GetxController {
       // Ambil nama user untuk semua order
       for (var order in allOrders) {
         await fetchUserName(order.userId);
+        await fetchUserEmail(order.userId);
       }
 
       sortByCreateDate(sortColumnIndex.value, sortAscending.value);
@@ -219,37 +236,41 @@ class MyDataOrder extends DataTableSource {
   DataRow? getRow(int index) {
     final order = controller.filteredOrders[index];
 
-    return DataRow2(cells: [
-      DataCell(
-        Text(order.orderId),
-      ),
-      DataCell(
-        Obx(() {
-          final name = controller.userNames[order.userId] ?? 'Loading...';
-          return Text(name);
-        }),
-      ),
-      DataCell(
-        Text(formatCurrency(order.total)),
-      ),
-      DataCell(
-        Text(order.fraudStatus),
-      ),
-      DataCell(
-        Text(order.status),
-      ),
-      DataCell(Text(order.createdAt == null ? '' : order.formattedDate)),
-      DataCell(Row(
-        children: [
-          IconButton(
-              onPressed: () => controller.showUpdateStatusDialog(order),
-              icon: const Icon(
-                Symbols.edit,
-                color: Colors.blue,
-              )),
-        ],
-      )),
-    ]);
+    return DataRow2(
+        onTap: () => Get.toNamed(GoPeduliRoutes.detailOrder, arguments: order),
+        selected: false,
+        onSelectChanged: (value) {},
+        cells: [
+          DataCell(
+            Text(order.orderId),
+          ),
+          DataCell(
+            Obx(() {
+              final name = controller.userNames[order.userId] ?? 'Loading...';
+              return Text(name);
+            }),
+          ),
+          DataCell(
+            Text(formatCurrency(order.total)),
+          ),
+          DataCell(
+            Text(order.fraudStatus),
+          ),
+          DataCell(
+            Text(order.status),
+          ),
+          DataCell(Text(order.createdAt == null ? '' : order.formattedDate)),
+          DataCell(Row(
+            children: [
+              IconButton(
+                  onPressed: () => controller.showUpdateStatusDialog(order),
+                  icon: const Icon(
+                    Symbols.edit,
+                    color: Colors.blue,
+                  )),
+            ],
+          )),
+        ]);
   }
 
   @override
