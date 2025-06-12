@@ -32,13 +32,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void initState() {
     super.initState();
     transactionId = const Uuid().v4();
-    generateSnapToken(); // Generate Snap Token saat layar dibuka
+    generateSnapToken();
     startCountdown();
   }
 
   void generateSnapToken() async {
     final url = Uri.parse(
-        'https://us-central1-gopeduli-4f028.cloudfunctions.net/createSnapToken');
+      'https://us-central1-gopeduli-4f028.cloudfunctions.net/createSnapToken',
+    );
 
     final user = FirebaseAuth.instance.currentUser;
     final userDoc = await FirebaseFirestore.instance
@@ -48,24 +49,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final email = userDoc.get('Email') ?? 'user@example.com';
     final name = userDoc.get('Name') ?? 'User';
 
-    final totalAmount = widget.items
-        .fold<double>(0.0, (sum, item) => sum + (item.price * item.quantity))
-        .toInt();
+    // Pakai helper function untuk subtotal, tax, dan total
+    final subtotal = calculateSubtotal();
+    final tax = calculateTax(subtotal);
+    final totalAmount = calculateTotalWithTax().toInt(); // Sudah termasuk pajak
 
     final body = {
-      "amount": totalAmount,
-      "customer": {
-        "first_name": name,
-        "email": email,
-      },
+      "amount":
+          totalAmount, // Ini yang dikirim ke Midtrans (sudah termasuk pajak)
+      "customer": {"first_name": name, "email": email},
       "user_id": user?.uid,
       "items": widget.items
-          .map((item) => {
-                "name": item.name,
-                "quantity": item.quantity,
-                "price": item.price,
-                "image": item.imageUrl,
-              })
+          .map(
+            (item) => {
+              "name": item.name,
+              "quantity": item.quantity,
+              "price": item.price,
+              "image": item.imageUrl,
+            },
+          )
           .toList(),
     };
 
@@ -83,7 +85,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               "https://app.sandbox.midtrans.com/snap/v2/vtweb/${data['snapToken']}";
           orderId = data['orderId'];
         });
-        startPolling(); // Mulai polling setelah dapat orderId
+        startPolling();
       } else {
         print("Failed to get snap token: ${response.body}");
       }
@@ -155,10 +157,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return 'Rp $rupiah,00';
   }
 
+  double calculateSubtotal() {
+    return widget.items.fold(
+      0.0,
+      (sum, item) => sum + (item.price * item.quantity),
+    );
+  }
+
+  double calculateTax(double subtotal) {
+    return subtotal * 0.1;
+  }
+
+  double calculateTotalWithTax() {
+    final subtotal = calculateSubtotal();
+    final tax = calculateTax(subtotal);
+    return subtotal + tax;
+  }
+
   @override
   Widget build(BuildContext context) {
-    double total =
-        widget.items.fold(0, (sum, item) => sum + (item.price * item.quantity));
+    double total = widget.items.fold(
+      0,
+      (sum, item) => sum + (item.price * item.quantity),
+    );
     double tax = total * 0.1;
     double finalTotal = total + tax;
     String formattedTime =
@@ -173,69 +194,97 @@ class _PaymentScreenState extends State<PaymentScreen> {
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: primaryColor,
-        centerTitle: true,
         elevation: 0,
+        centerTitle: true,
         title: const Text(
           'Payment',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-            color: whiteColor,
             fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: whiteColor,
           ),
         ),
         leading: const BackButton(color: whiteColor),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // SECTION: QR Code
-            const SizedBox(height: 10),
-            const Text(
-              'Scan here to pay',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: primaryColor,
-              ),
-            ),
-            const SizedBox(height: 12),
-            qrData == null
-                ? const CircularProgressIndicator()
-                : QrImageView(
-                    data: qrData!,
-                    version: QrVersions.auto,
-                    size: 210,
-                    backgroundColor: whiteColor,
-                  ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.timer_outlined, color: Colors.redAccent),
-                const SizedBox(width: 6),
-                Text(
-                  formattedTime,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.red.shade400,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-
-            // SECTION: Order Summary
-            const SizedBox(height: 36),
             Container(
-              width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: whiteColor,
                 borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Scan to Pay',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  qrData == null
+                      ? const CircularProgressIndicator()
+                      : Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: bgColor),
+                          ),
+                          child: QrImageView(data: qrData!, size: 220),
+                        ),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.timer_outlined, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Text(
+                          formattedTime,
+                          style: TextStyle(
+                            color: Colors.red.shade600,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            // Order Summary
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: whiteColor,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
                   BoxShadow(
                     color: Colors.black12,
                     blurRadius: 8,
@@ -248,34 +297,52 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.shopping_bag_outlined,
-                          color: primaryColor, size: 20),
+                      Icon(Icons.shopping_bag_outlined, color: primaryColor),
                       SizedBox(width: 8),
                       Text(
                         'Order Summary',
                         style: TextStyle(
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: primaryColor,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  ...widget.items.map((item) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                  const SizedBox(height: 16),
+                  ...widget.items.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(
+                            color: Color(0xff199a8e),
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(12),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
                               child: Image.network(
                                 item.imageUrl,
-                                width: 70,
-                                height: 80,
-                                fit: BoxFit.fill,
+                                width: 65,
+                                height: 70,
+                                fit: BoxFit.cover,
                               ),
                             ),
-                            const SizedBox(width: 40),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,12 +354,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                       fontSize: 14,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 4),
                                   Text(
                                     'x${item.quantity}',
                                     style: const TextStyle(
-                                      color: textGray,
                                       fontSize: 13,
+                                      color: Color(0xFF6B7280),
                                     ),
                                   ),
                                 ],
@@ -301,20 +368,45 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             Text(
                               formatRupiah(item.price * item.quantity),
                               style: const TextStyle(
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                                 fontSize: 13,
                               ),
                             ),
                           ],
                         ),
-                      )),
-                  const Divider(height: 30),
-                  _buildSummaryRow('Subtotal', total,
-                      icon: Icons.attach_money_outlined),
-                  _buildSummaryRow('Tax (10%)', tax, icon: Icons.receipt_long),
-                  const SizedBox(height: 6),
-                  _buildSummaryRow('Total', finalTotal,
-                      isTotal: true, icon: Icons.payment_outlined),
+                      ),
+                    ),
+                  ),
+                  const Divider(),
+                  _buildSummaryRow('Subtotal', total),
+                  _buildSummaryRow('Tax (10%)', tax),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Total',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          formatRupiah(finalTotal),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -324,57 +416,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String title, double value,
-      {bool isTotal = false, IconData? icon}) {
-    const Color primaryColor = Color(0xff199a8e); // hijau kesehatan
-    const Color bgColor =
-        Color(0xffd0f0e9); // hijau terang untuk background total
-
-    Widget content = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+  Widget _buildSummaryRow(String title, double amount) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              if (icon != null)
-                Icon(
-                  icon,
-                  size: 18,
-                  color: isTotal ? Colors.black : Colors.grey[700],
-                ),
-              if (icon != null) const SizedBox(width: 6),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: isTotal ? 16 : 14,
-                  fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-                  color: isTotal ? Colors.black : Colors.black87,
-                ),
-              ),
-            ],
-          ),
+          Text(title),
           Text(
-            formatRupiah(value),
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: isTotal ? Colors.black : Colors.black87,
-            ),
+            formatRupiah(amount),
+            style: const TextStyle(fontWeight: FontWeight.w500),
           ),
         ],
       ),
     );
-
-    // Jika total, bungkus dengan container berwarna
-    return isTotal
-        ? Container(
-            decoration: const BoxDecoration(
-              color: bgColor,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: content,
-          )
-        : content;
   }
 }
