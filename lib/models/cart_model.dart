@@ -49,9 +49,8 @@ class CartItem {
   @override
   int get hashCode => name.hashCode;
 
-  get stock => null;
-
-  get types => null;
-
-  get description => null;
+  // getter aman, tidak null
+  int get stock => product.stock;
+  List<String> get types => product.types;
+  String get description => product.description;
 }

@@ -16,12 +16,7 @@ class MobileApp extends StatelessWidget {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'GoPeduli',
-            theme: ThemeData(
-              useMaterial3: true,
-              textTheme: GoogleFonts.interTextTheme(
-                Theme.of(context).textTheme,
-              ),
-            ),
+            theme: ThemeData(useMaterial3: true, fontFamily: 'Inter'),
             home: const SplashScreen(),
           );
         },
