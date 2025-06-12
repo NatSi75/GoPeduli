@@ -182,6 +182,9 @@ class MyDataDoctor extends DataTableSource {
         Text(doctor.name),
       ),
       DataCell(
+        Text(doctor.schedule),
+      ),
+      DataCell(
         Text(doctor.hospital),
       ),
       DataCell(

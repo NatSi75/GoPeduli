@@ -21,7 +21,7 @@ class MedicineController extends GetxController {
   RxList<bool> selectedRows =
       <bool>[].obs; //Observable list to store selected rows
   RxInt sortColumnIndex =
-      6.obs; //Observable for tracking the index of the column for string
+      8.obs; //Observable for tracking the index of the column for string
   RxBool sortAscending = true
       .obs; // Observable for tracking the sorting order (ascending or descending)
   final searchTextController =

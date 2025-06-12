@@ -87,6 +87,10 @@ class GoPeduliPaginatedTableDoctor extends StatelessWidget {
                       controller.sortByName(columnIndex, ascending),
                 ),
                 const DataColumn2(
+                  label: Text('Schedule',
+                      style: TextStyle(color: GoPeduliColors.white)),
+                ),
+                const DataColumn2(
                     label: Text(
                   'Hospital',
                   style: TextStyle(color: GoPeduliColors.white),

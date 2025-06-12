@@ -11,6 +11,7 @@ class UserModel {
   String phoneNumber;
   String address;
   String hospital;
+  String schedule;
   AppRole role;
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -24,6 +25,7 @@ class UserModel {
     this.phoneNumber = '',
     this.address = '',
     required this.hospital,
+    required this.schedule,
     this.role = AppRole.user,
     this.createdAt,
     this.updatedAt,
@@ -37,7 +39,7 @@ class UserModel {
 
   //Static function to create an empty user model
   static UserModel empty() =>
-      UserModel(email: '', profilePicture: '', hospital: '');
+      UserModel(email: '', profilePicture: '', hospital: '', schedule: '');
 
   //Convert model to JSON structure for storing data in Firebase
   Map<String, dynamic> toJson() {
@@ -49,6 +51,7 @@ class UserModel {
       'PhoneNumber': phoneNumber,
       'Address': address,
       'Hospital': hospital,
+      'Schedule': schedule,
       'Role': role.name.toString(),
       'CreatedAt': createdAt,
       'UpdatedAt': updatedAt = DateTime.now(),
@@ -70,6 +73,7 @@ class UserModel {
             data.containsKey('PhoneNumber') ? data['PhoneNumber'] ?? '' : '',
         address: data.containsKey('Address') ? data['Address'] ?? '' : '',
         hospital: data.containsKey('Hospital') ? data['Hospital'] ?? '' : '',
+        schedule: data.containsKey('Schedule') ? data['Schedule'] ?? '' : '',
         role: data.containsKey('Role')
             ? (data['Role'] ?? AppRole.user) == AppRole.admin.name.toString()
                 ? AppRole.admin

@@ -74,9 +74,9 @@ class OrderModel {
       return OrderModel(
         orderId: document.id,
         userId: data['user_id'] ?? '',
-        items: (data['Items'] as List<dynamic>?)
-                ?.map((item) => OrderItemModel.fromSnapshot(
-                    item as DocumentSnapshot<Map<String, dynamic>>))
+        items: (data['items'] as List<dynamic>?)
+                ?.map((itemMap) =>
+                    OrderItemModel.fromMap(itemMap as Map<String, dynamic>))
                 .toList() ??
             [],
         fraudStatus: data['fraud_status'] ?? '',
