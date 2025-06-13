@@ -1,0 +1,2 @@
+C:/Users/Natanael Sion/Downloads/SoftDev 2/GoPeduli/android/app/.cxx/RelWithDebInfo/1p5rs555/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/Natanael Sion/Downloads/SoftDev 2/GoPeduli/android/app/.cxx/RelWithDebInfo/1p5rs555/arm64-v8a/CMakeFiles/rebuild_cache.dir

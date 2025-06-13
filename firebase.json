@@ -1,1 +1,95 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"gopeduli-4f028","appId":"1:1072696479894:android:72267b742c7e256450b2b7","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"gopeduli-4f028","configurations":{"android":"1:1072696479894:android:72267b742c7e256450b2b7","ios":"1:1072696479894:ios:963cbbf87bd4f4c250b2b7","macos":"1:1072696479894:ios:963cbbf87bd4f4c250b2b7","web":"1:1072696479894:web:97e0263686ad8e5150b2b7","windows":"1:1072696479894:web:6452765f6244cf0e50b2b7"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "gopeduli-4f028",
+          "appId": "1:1072696479894:android:72267b742c7e256450b2b7",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "gopeduli-4f028",
+          "configurations": {
+            "android": "1:1072696479894:android:72267b742c7e256450b2b7",
+            "ios": "1:1072696479894:ios:963cbbf87bd4f4c250b2b7",
+            "macos": "1:1072696479894:ios:963cbbf87bd4f4c250b2b7",
+            "web": "1:1072696479894:web:97e0263686ad8e5150b2b7",
+            "windows": "1:1072696479894:web:6452765f6244cf0e50b2b7"
+          }
+        }
+      }
+    }
+  },
+  "emulators": {
+    "dataconnect": {
+      "dataDir": "dataconnect/.dataconnect/pgliteData",
+      "port": 9399
+    },
+    "apphosting": {
+      "port": 5002,
+      "rootDirectory": "./",
+      "startCommand": "npm run dev"
+    },
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "database": {
+      "port": 9000
+    },
+    "hosting": {
+      "port": 5000
+    },
+    "pubsub": {
+      "port": 8085
+    },
+    "storage": {
+      "port": 9199
+    },
+    "eventarc": {
+      "port": 9299
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  },
+  "dataconnect": {
+    "source": "dataconnect"
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "asia-southeast2",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "remoteconfig": {
+    "template": "remoteconfig.template.json"
+  },
+  "extensions": {},
+  "database": {
+    "rules": "database.rules.json"
+  }
+}

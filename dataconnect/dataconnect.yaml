@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "GoPeduli"
+location: "asia-southeast1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "gopeduli-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
